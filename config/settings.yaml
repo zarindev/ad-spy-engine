@@ -1,0 +1,54 @@
+# Ad Spy Engine — application settings.
+# Values here are defaults; anything set in the in-app Settings screen overrides them
+# (stored in data/settings.override.yaml). Secrets belong in .env, never here.
+
+scraping:
+  driver: chrome            # chrome | undetected  (undetected requires `pip install undetected-chromedriver`)
+  headless: true            # false = visible browser window (useful for debugging)
+  window_size: [1440, 1000]
+  language: en-US           # UI language forced on the Ad Library (keeps text anchors predictable)
+  page_load_timeout: 45     # seconds
+  initial_wait: [4.0, 7.0]  # seconds to wait after first page load (random within range)
+  delay_range: [1.2, 3.2]   # seconds between scroll steps (random within range)
+  long_pause_chance: 0.08   # probability of an extra "human" pause on each scroll
+  long_pause_range: [4.0, 8.0]
+  scroll_step_px: [1400, 2600]
+  no_new_ads_attempts: 4    # stop after this many consecutive scrolls that yield nothing new
+  max_ads: 200
+  min_seconds_between_scans: 45
+  retries: 3                # retries for stale elements / timeouts
+  screenshots: true
+  download_media: true      # download images (thumbnails always downloaded when enabled)
+  download_videos: false    # video files can be large; enable explicitly
+  max_media_mb: 25
+  max_media_per_ad: 4       # dynamic/catalog ads can carry dozens of images
+  media_workers: 4
+
+scoring:
+  weights:
+    longevity: 0.55
+    variations: 0.25
+    platforms: 0.10
+    recency: 0.10
+  longevity_full_days: 90   # days_running at which longevity maxes out
+  variations_log2_cap: 4    # log2(variation_count + 1) / cap
+  platforms_total: 4        # Meta lists up to 6 placements today; ratio is capped at 1.0
+  thresholds:
+    winner: 75
+    promising: 50
+
+ai:
+  model: claude-sonnet-5-5
+  batch_size: 10
+  max_copy_chars: 1500
+
+reports:
+  agency_name: Ad Spy Engine
+  primary_color: "#6D28D9"
+  accent_color: "#F59E0B"
+  logo_path: null
+
+server:
+  host: 127.0.0.1
+  port: 8000
+  open_browser: true

@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ competitor.name }} — Ad Spy Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: {{ brand.primary_color or '#6D28D9' }};
+    --accent: {{ brand.accent_color or '#F59E0B' }};
+    --bg: #0B0B12; --panel: #13131D; --line: #24243A; --text: #ECECF4; --muted: #9A9AB5;
+    --green: #10B981; --blue: #60A5FA;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.55 Inter, system-ui, sans-serif; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 40px 32px 64px; }
+  header { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px;
+           padding: 32px; border-radius: 16px; border: 1px solid var(--line);
+           background: radial-gradient(800px 300px at 0% 0%, color-mix(in srgb, var(--primary) 45%, transparent), transparent), var(--panel); }
+  .eyebrow { color: var(--muted); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; font-weight: 600; }
+  h1 { margin: 6px 0 4px; font-size: 34px; letter-spacing: -.02em; }
+  .meta { color: var(--muted); font-size: 13px; }
+  .meta b { color: var(--text); font-weight: 600; }
+  .kpis { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin: 20px 0 28px; }
+  .kpi { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+  .kpi .n { font: 600 26px 'JetBrains Mono', monospace; }
+  .kpi .l { color: var(--muted); font-size: 12px; }
+  .kpi.win .n { color: var(--accent); }
+  h2 { font-size: 18px; margin: 32px 0 14px; letter-spacing: -.01em; }
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .bars { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
+  .bar { display: grid; grid-template-columns: 130px 1fr 44px; gap: 10px; align-items: center; margin: 7px 0; font-size: 13px; }
+  .bar .track { height: 8px; border-radius: 99px; background: #1E1E2E; overflow: hidden; }
+  .bar .fill { height: 100%; background: linear-gradient(90deg, var(--primary), #A78BFA); border-radius: 99px; }
+  .bar .v { text-align: right; font-family: 'JetBrains Mono', monospace; color: var(--muted); }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; break-inside: avoid; display: flex; flex-direction: column; }
+  .shot { background: #fff; max-height: 420px; overflow: hidden; display: flex; justify-content: center; }
+  .shot img { width: 100%; object-fit: cover; object-position: top; }
+  .noshot { height: 160px; display: grid; place-items: center; color: var(--muted); background: #1A1A28; }
+  .body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 8px; }
+  .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .badge { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 99px; border: 1px solid; white-space: nowrap; }
+  .badge.winner { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 50%, transparent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
+  .badge.promising { color: var(--green); border-color: color-mix(in srgb, var(--green) 45%, transparent); background: color-mix(in srgb, var(--green) 10%, transparent); }
+  .badge.testing { color: var(--blue); border-color: color-mix(in srgb, var(--blue) 45%, transparent); background: color-mix(in srgb, var(--blue) 10%, transparent); }
+  .score { font: 600 22px 'JetBrains Mono', monospace; }
+  .page { font-weight: 600; }
+  .copy { color: #C9C9DA; font-size: 13px; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { font-size: 11px; color: var(--muted); border: 1px solid var(--line); padding: 2px 8px; border-radius: 99px; }
+  a { color: #A78BFA; text-decoration: none; }
+  table { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; font-size: 13px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+  td.num { font-family: 'JetBrains Mono', monospace; }
+  footer { margin-top: 40px; color: var(--muted); font-size: 12px; text-align: center; }
+  @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } .wrap { padding: 16px; } }
+  @media (max-width: 900px) { .kpis { grid-template-columns: repeat(3, 1fr); } .grid, .split { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">{{ brand.agency_name or 'Ad Spy Engine' }} · Competitor Ad Report</div>
+      <h1>{{ competitor.name }}</h1>
+      <div class="meta">
+        {{ 'Page ID' if scan.search_type == 'page_id' else 'Keyword' }} <b>{{ scan.query }}</b> ·
+        Country <b>{{ scan.country }}</b> · Media <b>{{ scan.media_type }}</b> ·
+        Scan #{{ scan.id }} · {{ generated_at }}
+      </div>
+    </div>
+    <div class="meta" style="text-align:right">
+      Status <b>{{ scan.status }}</b><br>
+      {% if scan.total_results is not none %}Meta reports ~<b>{{ scan.total_results | thousands }}</b> results{% endif %}
+    </div>
+  </header>
+
+  <section class="kpis">
+    <div class="kpi"><div class="n">{{ kpis.total }}</div><div class="l">Ads collected</div></div>
+    <div class="kpi win"><div class="n">{{ kpis.winners }}</div><div class="l">🏆 Winners</div></div>
+    <div class="kpi"><div class="n">{{ kpis.promising }}</div><div class="l">📈 Promising</div></div>
+    <div class="kpi"><div class="n">{{ kpis.testing }}</div><div class="l">🧪 Testing</div></div>
+    <div class="kpi"><div class="n">{{ kpis.avg_days }}</div><div class="l">Avg. days running</div></div>
+    <div class="kpi"><div class="n">{{ kpis.longest }}</div><div class="l">Longest-running (days)</div></div>
+  </section>
+
+  <div class="split">
+    <div class="bars">
+      <div class="eyebrow">Formats</div>
+      {% for name, n in formats %}
+      <div class="bar"><span>{{ name | capitalize }}</span><div class="track"><div class="fill" style="width: {{ (100 * n / kpis.total) | round(1) }}%"></div></div><span class="v">{{ n }}</span></div>
+      {% endfor %}
+    </div>
+    <div class="bars">
+      <div class="eyebrow">Placements</div>
+      {% for name, n in platforms %}
+      <div class="bar"><span>{{ name.replace('_', ' ') | title }}</span><div class="track"><div class="fill" style="width: {{ (100 * n / kpis.total) | round(1) }}%"></div></div><span class="v">{{ n }}</span></div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <h2>Top ads by Winner Score</h2>
+  {% if not top %}<p class="meta">No ads were collected in this scan.</p>{% endif %}
+  <div class="grid">
+    {% for item in top %}{% set ad = item.ad %}
+    <article class="card">
+      {% if item.image %}<div class="shot"><img src="{{ item.image }}" alt="Ad {{ ad.library_id }}"></div>
+      {% else %}<div class="noshot">No screenshot</div>{% endif %}
+      <div class="body">
+        <div class="row">
+          <span class="badge {{ item.badge_key }}">{{ item.badge.emoji }} {{ item.badge.label }}</span>
+          <span class="score">{{ ad.score }}</span>
+        </div>
+        <div class="page">{{ ad.page_name or '—' }}</div>
+        {% if ad.headline %}<div><b>{{ ad.headline }}</b></div>{% endif %}
+        {% if ad.ad_copy %}<div class="copy">{{ ad.ad_copy }}</div>{% endif %}
+        <div class="chips">
+          <span class="chip">{{ ad.days_running }} days</span>
+          <span class="chip">{{ ad.media_type }}</span>
+          {% if ad.variation_count > 1 %}<span class="chip">{{ ad.variation_count }} variations</span>{% endif %}
+          {% if ad.cta_text %}<span class="chip">{{ ad.cta_text }}</span>{% endif %}
+        </div>
+        <div class="meta"><a href="{{ item.library_url }}">Library ID {{ ad.library_id }} ↗</a></div>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+
+  <h2>All ads ({{ ads | length }})</h2>
+  <table>
+    <thead><tr><th>Score</th><th>Page</th><th>Headline / copy</th><th>Format</th><th>Days</th><th>Var.</th><th>Started</th></tr></thead>
+    <tbody>
+    {% for ad in ads %}
+      <tr>
+        <td class="num">{{ ad.score }}</td>
+        <td>{{ ad.page_name or '—' }}</td>
+        <td>{{ (ad.headline or ad.ad_copy or '—')[:90] }}</td>
+        <td>{{ ad.media_type }}</td>
+        <td class="num">{{ ad.days_running }}</td>
+        <td class="num">{{ ad.variation_count }}</td>
+        <td class="num">{{ ad.start_date or '—' }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+
+  <footer>Generated by Ad Spy Engine from the public Meta Ad Library. Winner Score is a heuristic based on longevity, variations, placements and status — not actual performance data.</footer>
+</div>
+</body>
+</html>

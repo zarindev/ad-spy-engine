@@ -1,0 +1,34 @@
+[tool.pytest.ini_options]
+testpaths = ["backend/tests"]
+pythonpath = ["backend"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+src = ["backend"]
+extend-exclude = ["backend/app/db/migrations/versions"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "W"]
+ignore = ["E501", "B008"]
+
+[tool.black]
+line-length = 110
+target-version = ["py311"]
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+check_untyped_defs = false
+warn_unused_ignores = false
+
+# SQLModel's Optional primary keys / column expressions and bs4's attribute-value unions
+# produce false positives; keep strictness elsewhere.
+[[tool.mypy.overrides]]
+module = ["app.jobs.*", "app.reports.*", "app.api.*", "app.analysis.*", "app.db.*"]
+disable_error_code = ["attr-defined", "union-attr", "arg-type", "operator", "call-overload"]
+
+[[tool.mypy.overrides]]
+module = ["app.scraper.parser"]
+disable_error_code = ["arg-type", "assignment"]

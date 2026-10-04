@@ -1,0 +1,96 @@
+# Ad Spy Engine — scraping selectors & text anchors.
+#
+# Meta's Ad Library uses obfuscated, frequently-changing CSS class names, so nothing here
+# depends on them. Extraction priority:
+#   1. Structured JSON the page itself receives (server-rendered <script type="application/json">
+#      blobs + intercepted /api/graphql/ pagination responses). Keys are listed under `json`.
+#   2. DOM fallback: ad cards located via stable *text anchors* ("Library ID", "Started running on").
+# Edit this file (no code change needed) when Meta changes wording or adds a locale.
+
+url:
+  base: https://www.facebook.com/ads/library/
+  keyword: "?active_status={status}&ad_type=all&country={country}&q={query}&search_type=keyword_unordered&media_type={media}"
+  page_id: "?active_status={status}&ad_type=all&country={country}&view_all_page_id={page_id}&search_type=page&media_type={media}"
+  platform_param: "publisher_platforms[{i}]={platform}"
+
+json:
+  ad_marker: ad_archive_id          # a dict with this key + `snapshot` is one ad
+  connection_key: search_results_connection
+  captcha_flag: xfb_ad_library_is_captcha_required
+  graphql_url_contains: /api/graphql
+
+anchors:
+  library_id:                       # regex; group 1 = numeric id
+    - 'Library ID:?\s*(\d{6,})'
+    - 'ID (?:de la )?biblioth[eè]que\s*:?\s*(\d{6,})'
+    - 'Identificador de la biblioteca:?\s*(\d{6,})'
+    - 'Bibliotheks-ID:?\s*(\d{6,})'
+    - 'ID[^\d]{0,30}(\d{12,})'
+  card_xpath_anchor: "Library ID"   # text used to find card roots in the live DOM
+  started_running:
+    - 'Started running on (.+)'
+    - '(?:Ejecución|Circulación) iniciada el (.+)'
+    - 'Diffusion commencée le (.+)'
+    - 'Läuft seit dem (.+)'
+    - 'Iniciou a veiculação em (.+)'
+  date_range: '(.+?)\s+[-–]\s+(.+)'
+  status_active: [Active, Activo, Actif, Aktiv, Ativo, Attivo]
+  status_inactive: [Inactive, Inactivo, Inactif, Inaktiv, Inativo, Non attivo]
+  variations:                       # regex; group 1 = count when present
+    - '(\d+) ads use this creative and text'
+    - '(\d+) anuncios usan este contenido'
+    - 'This ad has multiple versions'
+  sponsored: [Sponsored, Publicidad, Sponsorisé, Gesponsert, Patrocinado]
+  total_results:
+    - '~?\s*([\d.,]+\s*[KkMm]?)\s+results?'
+    - '~?\s*([\d.,]+\s*[KkMm]?)\s+resultados'
+    - '~?\s*([\d.,]+\s*[KkMm]?)\s+résultats'
+    - '~?\s*([\d.,]+\s*[KkMm]?)\s+Ergebnisse'
+  no_results:
+    - No ads match your search criteria
+    - "No results"
+    - No se encontraron anuncios
+
+consent:
+  button_texts:
+    - Allow all cookies
+    - Allow essential and optional cookies
+    - Accept all
+    - Only allow essential cookies
+    - Decline optional cookies
+    - Aceptar todas
+    - Permitir todas las cookies
+    - Tout accepter
+    - Autoriser tous les cookies
+    - Alle Cookies erlauben
+    - Alle akzeptieren
+    - Permitir todos os cookies
+
+blocking:
+  url_contains: [/login, /checkpoint, captcha]
+  page_texts:
+    - You must log in to continue
+    - Log in to Facebook
+    - Log into Facebook
+    - You're Temporarily Blocked
+    - "You’re Temporarily Blocked"
+    - Your request couldn't be processed
+    - Security check
+    - Please confirm you're not a robot
+  error_banners:
+    - There was an error
+    - Something went wrong
+    - Sorry, something went wrong
+
+# Best-effort DOM-only platform detection (sprite icons have no labels). Only used when
+# no JSON was captured for an ad. Facebook's own icon is not a sprite — see docs/KNOWN_ISSUES.md.
+platform_sprites:
+  "0px -1010px": INSTAGRAM
+  "-264px -817px": MESSENGER
+  "-277px -817px": THREADS
+  "-290px -817px": WHATSAPP
+
+cta_texts: [Learn more, Shop now, Sign up, Download, Get offer, Book now, Contact us,
+            Subscribe, Apply now, Order now, Watch more, Send message, Install now,
+            Get quote, Donate now, See menu, Play game, Listen now, Send WhatsApp message,
+            Get started, Buy now, Shop Now, Learn More, Sign Up]

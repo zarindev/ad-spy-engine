@@ -1,0 +1,91 @@
+{
+ "ad_archive_id": "1045357461299864",
+ "collation_count": 2,
+ "collation_id": "28116341108015340",
+ "is_active": true,
+ "page_id": "129669023798560",
+ "page_is_deleted": false,
+ "snapshot": {
+  "branded_content": null,
+  "page_id": "129669023798560",
+  "page_is_deleted": false,
+  "page_profile_uri": "https://www.facebook.com/Gymshark/",
+  "root_reshared_post": null,
+  "byline": null,
+  "disclaimer_label": null,
+  "page_name": "Gymshark",
+  "page_profile_picture_url": "https://scontent.fdac27-2.fna.fbcdn.net/v/t39.35426-6/737130920_1940451456671101_4985241349964526742_n.jpg?stp=dst-jpg_s60x60_tt6&_nc_cat=100&_nc_map=urlgen_bucketless&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=srn5r3s70jMQ7kNvwGMcZL0&_nc_oc=AdpNiZ639SiZDXhX1MLbjj86Xy2G6rpjgHKLp11YRV85XFU04k0oFmEd2n4hk5vnLhU&_nc_zt=14&_nc_ht=scontent.fdac27-2.fna&_nc_gid=w2lWSDxO7kltaRsjU-JTFA&_nc_ss=79289&oh=00_AQM8nSCcjlu8ertKMhwC_ULgCFaP0sGAr2DllRoPiodacg&oe=6AC7B590",
+  "event": null,
+  "caption": null,
+  "cta_text": null,
+  "cards": [],
+  "body": {
+   "text": "If you’re reading this, it’s time to train. No excuses 🔥"
+  },
+  "cta_type": null,
+  "display_format": "IMAGE",
+  "link_description": null,
+  "link_url": null,
+  "images": [
+   {
+    "image_crops": [],
+    "original_image_url": "https://scontent.fdac27-2.fna.fbcdn.net/v/t39.35426-6/736494114_3226568960864672_4772652696613671055_n.jpg?_nc_cat=108&_nc_map=urlgen_bucketless&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=RUGraWAsZa8Q7kNvwEdfh4q&_nc_oc=AdqjVtIxCwMkcECsSRFoQRJXdnfNsjx3Hcnl3zxG1SZGGNwdwV5OvkuTQ68UXLAkXNg&_nc_zt=14&_nc_ht=scontent.fdac27-2.fna&_nc_gid=w2lWSDxO7kltaRsjU-JTFA&_nc_ss=79289&oh=00_AQNbgGfwEXLv8ei0HJSwm-bzp31dcoWW4xhCEOyO2R_lGg&oe=6AC7A30F",
+    "resized_image_url": "https://scontent.fdac27-2.fna.fbcdn.net/v/t39.35426-6/736689438_1652089315866850_7138374658735351877_n.jpg?stp=dst-jpg_s600x600_tt6&_nc_cat=107&_nc_map=urlgen_bucketless&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=AAH0ZXiF91YQ7kNvwFH2uwt&_nc_oc=AdpyONpRcMh9nnhxV_pXFIH6PngoTqRjQFf6q9zuqAwes-LOglP2yaezQKn-hLH2mAw&_nc_zt=14&_nc_ht=scontent.fdac27-2.fna&_nc_gid=w2lWSDxO7kltaRsjU-JTFA&_nc_ss=79289&oh=00_AQO8dVasMPTrCNh0skRCkxvKJ2paO1JPK1GmdobKF1cvDw&oe=6AC7B8F6",
+    "watermarked_resized_image_url": ""
+   }
+  ],
+  "page_categories": [
+   "Clothing (Brand)"
+  ],
+  "page_like_count": 2229061,
+  "title": null,
+  "videos": [],
+  "is_reshared": false,
+  "extra_links": [],
+  "extra_texts": [],
+  "extra_images": [],
+  "extra_videos": [],
+  "country_iso_code": null,
+  "brazil_tax_id": null,
+  "additional_info": null,
+  "ec_certificates": []
+ },
+ "has_user_reported": false,
+ "report_count": null,
+ "menu_items": [],
+ "state_media_run_label": null,
+ "page_name": "Gymshark",
+ "impressions_with_index": {
+  "impressions_text": null,
+  "impressions_index": -1
+ },
+ "gated_type": "ELIGIBLE",
+ "categories": [
+  "UNKNOWN"
+ ],
+ "is_aaa_eligible": false,
+ "contains_digital_created_media": false,
+ "reach_estimate": null,
+ "currency": "",
+ "spend": null,
+ "end_date": 1791010800,
+ "publisher_platform": [
+  "INSTAGRAM"
+ ],
+ "start_date": 1782975600,
+ "contains_sensitive_content": false,
+ "total_active_time": null,
+ "regional_regulation_data": {
+  "finserv": {
+   "is_deemed_finserv": false,
+   "is_limited_delivery": false
+  },
+  "tw_anti_scam": {
+   "is_limited_delivery": false
+  }
+ },
+ "hide_data_status": "NONE",
+ "fev_info": null,
+ "ad_id": null,
+ "targeted_or_reached_countries": []
+}
