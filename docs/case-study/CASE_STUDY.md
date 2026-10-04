@@ -130,5 +130,5 @@ I build custom automations: scrapers, monitoring dashboards, data pipelines and 
 They are designed to run reliably and are handed over with documentation.
 
 **Md Zarin Tasnim**, QA Engineer · Developer & Product Engineering background
-[Hire me on Upwork](https://www.upwork.com/freelancers/YOUR_PROFILE) ·
-[View the code on GitHub](https://github.com/YOUR_USERNAME/ad-spy-engine)
+[Hire me on Upwork](https://www.upwork.com/freelancers/~01b847509724f9e1ff) ·
+[View the code on GitHub](https://github.com/zarindev/ad-spy-engine)

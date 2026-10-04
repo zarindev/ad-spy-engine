@@ -196,7 +196,7 @@ heuristic from public signals, not spend or conversion data.
 <td>
 
 ```bat
-git clone https://github.com/YOUR_USERNAME/ad-spy-engine
+git clone https://github.com/zarindev/ad-spy-engine
 cd ad-spy-engine
 setup.bat
 start.bat
@@ -206,7 +206,7 @@ start.bat
 <td>
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/ad-spy-engine
+git clone https://github.com/zarindev/ad-spy-engine
 cd ad-spy-engine
 ./setup.sh
 ./start.sh
@@ -357,8 +357,8 @@ Details in [docs/LEGAL.md](docs/LEGAL.md). Known limitations in [docs/KNOWN_ISSU
 
 Need a custom automation or scraping tool? Let's talk.
 
-<a href="https://www.upwork.com/freelancers/YOUR_PROFILE"><img alt="Hire me on Upwork" src="https://img.shields.io/badge/Hire_me_on-Upwork-14A800?style=for-the-badge&logo=upwork&logoColor=white"></a>
-<a href="https://github.com/YOUR_USERNAME/ad-spy-engine"><img alt="GitHub" src="https://img.shields.io/badge/GitHub-ad--spy--engine-181717?style=for-the-badge&logo=github&logoColor=white"></a>
+<a href="https://www.upwork.com/freelancers/~01b847509724f9e1ff"><img alt="Hire me on Upwork" src="https://img.shields.io/badge/Hire_me_on-Upwork-14A800?style=for-the-badge&logo=upwork&logoColor=white"></a>
+<a href="https://github.com/zarindev/ad-spy-engine"><img alt="GitHub" src="https://img.shields.io/badge/GitHub-ad--spy--engine-181717?style=for-the-badge&logo=github&logoColor=white"></a>
 
 <sub>Released under the [MIT License](LICENSE). Not affiliated with or endorsed by Meta Platforms, Inc.</sub>
 
