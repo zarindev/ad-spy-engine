@@ -55,7 +55,7 @@ how the app degrades. Last verified against the live site: **2026-10-04** (count
 | Windows | Developed and tested on macOS. Paths use `pathlib`, `.bat` files are CRLF, and Chrome is found by Selenium Manager. | `setup.bat` / `start.bat` have not yet been run on a fresh Windows machine. Run them once and report any error output. |
 | Benchmarks | `docs/benchmarks.json` comes from two real scans on one Mac and one home connection. | Speeds vary with network, machine and Meta's page. Re-run `scripts/benchmark.py` to refresh. The "manual time" figure is an estimate with its assumption written next to it. |
 | Demo mode | Fictional data; live actions are disabled. | The demo's scan durations reuse the measured ads/min so the dashboard's throughput looks realistic. They aren't separate measurements. |
-| Demo GIF | Not included (can't be recorded headlessly in a meaningful way). | See the HTML comment in README.md for what to record. |
+| Demo GIF | `scripts/record_demo_gif.py` records a walkthrough of the demo dataset. Live scans are off in demo mode, so it doesn't show a scan in progress. | For a GIF with a live scan, screen-record the real app yourself, ideally scanning a brand you're allowed to show. |
 
 ## Storage
 

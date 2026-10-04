@@ -24,14 +24,8 @@ swipe files, and export branded PDF reports for clients. It runs on your machine
 subscription and no login to Facebook.
 
 <div align="center">
-  <!--
-    Demo GIF: record ~20 seconds at 1440×900 of
-    New Scan ("Gymshark", exact page) → Live Scan filling up → Results Gallery → open an ad →
-    Reports → Generate → PDF preview. Save as docs/assets/demo.gif (≤ 10 MB) and uncomment the
-    line below. Tools: ScreenToGif (Windows), Kap or Gifski (macOS).
-  -->
-  <!-- <img src="docs/assets/demo.gif" alt="Ad Spy Engine demo: scan, live results, report" width="90%"> -->
-  <img src="docs/assets/screenshots/results-dark.png" alt="Results Gallery with Winner badges" width="90%">
+  <!-- Re-record with: python scripts/seed_demo.py && python scripts/record_demo_gif.py (demo data, fictional brands) -->
+  <img src="docs/assets/demo.gif" alt="Ad Spy Engine walkthrough: dashboard, results, ad detail, compare and a branded report" width="90%">
 </div>
 
 ## 💡 Why Ad Spy Engine?
@@ -303,7 +297,7 @@ ad-spy-engine/
 ├── frontend/src/         # pages/, components/, hooks/, lib/
 ├── config/               # settings.yaml, selectors.yaml
 ├── docs/                 # ARCHITECTURE, KNOWN_ISSUES, LEGAL, benchmarks.json, assets/, case-study/
-├── scripts/              # seed_demo, capture_screenshots, benchmark, export_case_study, capture_fixtures
+├── scripts/              # seed_demo, capture_screenshots, record_demo_gif, benchmark, export_case_study, capture_fixtures
 ├── setup.bat / setup.sh, start.bat / start.sh, dev.bat / dev.sh
 └── data/                 # git-ignored: app.db, media/, reports/, logs/
 ```

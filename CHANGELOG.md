@@ -15,6 +15,7 @@ All notable changes to Ad Spy Engine are documented here. Format: [Keep a Change
 - `scripts/benchmark.py`: runs real scans and writes `docs/benchmarks.json` (ads/min, success
   rate, field coverage, environment, and a manual-time estimate with its assumption stated).
 - `scripts/capture_screenshots.py`: 12 screens × light/dark at 1440×900 from a demo server.
+- `scripts/record_demo_gif.py`: `docs/assets/demo.gif` walkthrough of the demo dataset.
 - `docs/assets/banner.svg`, `logo.svg`, full README, `docs/LEGAL.md`.
 - Case study: `docs/case-study/case-study.html` (9 slides at 1600×1200), `CASE_STUDY.md` with a
   ready-to-paste Upwork entry, `scripts/export_case_study.py` → PDF + PNG slides + thumbnail.
