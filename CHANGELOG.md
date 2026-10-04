@@ -4,6 +4,31 @@ All notable changes to Ad Spy Engine are documented here. Format: [Keep a Change
 
 ## [Unreleased]
 
+### Phase 5 — Agency mode & reports
+- Client folders: group competitors under a client name (create, rename, notes, delete keeps the
+  competitors), move brands between folders, rename competitors.
+- Compare screen for 2–3 brands: scoreboard with a marked leader per metric, measured highlights,
+  data-derived opportunities, format / winners' format / placement / longevity / CTA / AI hook
+  mix, weekly launch cadence and each brand's best ads. Shareable URL (`/compare?ids=…`).
+- Swipe files: boards with descriptions and an optional client, save ads from any card, the ad
+  detail panel or a bulk selection, per-ad notes and tags (filter by tag), CSV export.
+- Branded reports for a client folder, 1–3 competitors or a single scan: cover page (logo, agency,
+  "Prepared for"), executive summary, top winners with creatives, format/placement/CTA/angle
+  charts, launch cadence, change log, "Opportunities for you" and an optional appendix. A4 PDF
+  with page numbers via Chrome's `Page.printToPDF` and CSS `@page` rules.
+- "Opportunities for you": written by Claude from the report's measured data when
+  `ANTHROPIC_API_KEY` is set (structured output, cost recorded on the report). Otherwise, or if
+  the AI step fails, rule-based opportunities built from the same numbers, each with its evidence.
+- Brand's-own-ads filter for Compare and reports: keyword scans also return other advertisers
+  that mention a brand; those are excluded by default (toggleable).
+- Branding in Settings: logo upload (PNG/JPG/WebP/SVG, 2 MB), agency name, colors, live cover
+  preview. Colors are validated; the logo path can only be set through the upload endpoint.
+- Responsive app shell: below 768px the sidebar becomes a drawer, and grids no longer overflow
+  on phones.
+- Keyword competitors adopt the casing of a page name that contains the query
+  ("athletic greens" → "Athletic Greens").
+- Migration 0005 (`client`, `board`, `boarditem`, `competitor.client_id`).
+
 ### Phase 4 — Monitoring
 - Watchlist: daily or weekly re-scans per competitor at a local time, run by APScheduler while the
   app is open. Runs missed while the app was closed catch up once on start. "Run now",

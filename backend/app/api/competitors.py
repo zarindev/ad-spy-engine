@@ -4,6 +4,7 @@ from collections import Counter, defaultdict
 from datetime import date, timedelta
 
 from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel, Field
 from sqlmodel import func, select
 
 from app.analysis.ai import competitor_insights
@@ -58,6 +59,23 @@ def get_competitor(competitor_id: int) -> dict:
 
 def _week_start(d: date) -> date:
     return d - timedelta(days=d.weekday())
+
+
+class CompetitorPatch(BaseModel):
+    name: str = Field(min_length=1, max_length=80)
+
+
+@router.patch("/{competitor_id}")
+def rename_competitor(competitor_id: int, body: CompetitorPatch) -> dict:
+    """Display name only; the slug (and media folder) stays stable."""
+    with session_scope() as session:
+        comp = session.get(Competitor, competitor_id)
+        if comp is None:
+            raise HTTPException(404, "Competitor not found")
+        comp.name = body.name.strip()
+        session.add(comp)
+        session.commit()
+        return competitor_out(comp, _stats(session, comp.id))
 
 
 @router.get("/{competitor_id}/profile")

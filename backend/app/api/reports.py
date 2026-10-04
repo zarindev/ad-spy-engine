@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+from typing import Literal
 
 from fastapi import APIRouter, HTTPException
 from fastapi.concurrency import run_in_threadpool
@@ -10,62 +11,125 @@ from sqlmodel import select
 
 from app.api.serializers import report_out
 from app.core.paths import data_dir
-from app.db.models import Competitor, Report, Scan
+from app.db.models import Client, Competitor, Report, Scan
 from app.db.session import session_scope
-from app.reports.builder import build_scan_report
+from app.reports.builder import DEFAULT_SECTIONS, SECTIONS, ReportSpec, normalize_sections, render_report
 from app.reports.pdf import html_to_pdf
 from app.scraper.media import relative_to_data
 
 log = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/reports", tags=["reports"])
 
-SECTIONS = ["summary", "charts", "top_ads", "all_ads"]
-
 
 class ReportCreate(BaseModel):
-    scan_id: int
+    kind: Literal["scan", "competitor", "compare", "client"] = "scan"
+    scan_id: int | None = None
+    competitor_ids: list[int] = Field(default_factory=list, max_length=12)
+    client_id: int | None = None
+    client_name: str | None = Field(None, max_length=80)
     title: str | None = Field(None, max_length=120)
-    sections: list[str] = Field(default_factory=lambda: list(SECTIONS))
-    top_n: int = Field(30, ge=3, le=100)
+    sections: list[str] = Field(default_factory=lambda: list(DEFAULT_SECTIONS))
+    top_n: int = Field(10, ge=3, le=50)
+    ai: bool = False
+    days: int = Field(30, ge=1, le=365)
+    own_only: bool = True
     pdf: bool = True
 
 
-def _generate(body: ReportCreate) -> dict:
+def _resolve(body: ReportCreate) -> tuple[ReportSpec, list[int], str]:
+    """Turn a request into a builder spec, validating the scope. Returns (spec, competitor ids, title)."""
+    client_name = (body.client_name or "").strip() or None
     with session_scope() as session:
-        scan = session.get(Scan, body.scan_id)
-        if scan is None:
-            raise HTTPException(404, "Scan not found")
-        comp = session.get(Competitor, scan.competitor_id)
-        title = body.title or f"{comp.name if comp else 'Scan'} — Ad Report"
-        report = Report(
-            title=title,
-            kind="scan",
-            scan_id=scan.id,
-            competitor_ids=[scan.competitor_id],
-            options={"sections": [s for s in body.sections if s in SECTIONS], "top_n": body.top_n},
-        )
+        if body.kind == "scan":
+            scan = session.get(Scan, body.scan_id) if body.scan_id else None
+            if scan is None:
+                raise HTTPException(404, "Scan not found")
+            ids = [scan.competitor_id]
+        elif body.kind == "client":
+            client = session.get(Client, body.client_id) if body.client_id else None
+            if client is None:
+                raise HTTPException(404, "Client not found")
+            ids = list(session.exec(select(Competitor.id).where(Competitor.client_id == client.id)).all())  # type: ignore[arg-type]
+            if not ids:
+                raise HTTPException(
+                    422, f"“{client.name}” has no competitors yet. Add some on the Competitors page."
+                )
+            client_name = client_name or client.name
+        else:
+            ids = list(dict.fromkeys(body.competitor_ids))
+            if not ids:
+                raise HTTPException(422, "Pick at least one competitor")
+            if body.kind == "compare" and not 2 <= len(ids) <= 3:
+                raise HTTPException(422, "A comparison report needs 2 or 3 competitors")
+        names = []
+        for cid in ids:
+            comp = session.get(Competitor, cid)
+            if comp is None:
+                raise HTTPException(404, f"Competitor {cid} not found")
+            names.append(comp.name)
+    sections = normalize_sections(body.sections)
+    if not sections:
+        raise HTTPException(422, "Pick at least one section")
+    default_title = names[0] if len(names) == 1 else " vs ".join(names[:3]) + ("…" if len(names) > 3 else "")
+    if body.kind == "client" and client_name:
+        default_title = f"{client_name}: competitor landscape"
+    title = (body.title or "").strip() or default_title
+    spec = ReportSpec(
+        competitor_ids=ids,
+        scan_id=body.scan_id if body.kind == "scan" else None,
+        title=title,
+        client_name=client_name,
+        sections=sections,
+        top_n=body.top_n,
+        use_ai=body.ai,
+        days=body.days,
+        own_only=body.own_only,
+    )
+    return spec, ids, title
+
+
+def _generate(body: ReportCreate) -> dict:
+    spec, ids, title = _resolve(body)
+    report = Report(
+        title=title,
+        kind=body.kind,
+        scan_id=spec.scan_id,
+        competitor_ids=ids,
+        options={
+            "sections": spec.sections,
+            "top_n": spec.top_n,
+            "client_name": spec.client_name,
+            "client_id": body.client_id,
+            "ai": body.ai,
+            "days": spec.days,
+            "own_only": spec.own_only,
+        },
+    )
+    with session_scope() as session:
         session.add(report)
         session.commit()
         session.refresh(report)
 
     try:
-        html_path = build_scan_report(
-            body.scan_id, options={**report.options, "title": body.title or (comp.name if comp else None)}
-        )
+        html_path, meta = render_report(spec)
         report.html_path = relative_to_data(html_path)
+        report.options = {**report.options, **meta}
         if body.pdf:
             pdf_path = html_to_pdf(html_path, html_path.with_suffix(".pdf"))
             report.pdf_path = relative_to_data(pdf_path)
-    except HTTPException:
-        raise
     except Exception as exc:  # noqa: BLE001
         log.exception("Report generation failed")
-        report.status, report.error = "failed", f"{type(exc).__name__}: {exc}"
+        report.status, report.error = "failed", f"{type(exc).__name__}: {exc}"[:500]
     with session_scope() as session:
         session.add(report)
         session.commit()
         session.refresh(report)
     return report_out(report)
+
+
+@router.get("/sections")
+def sections() -> dict:
+    return {"all": SECTIONS, "default": DEFAULT_SECTIONS}
 
 
 @router.post("", status_code=201)

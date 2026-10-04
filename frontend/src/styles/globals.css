@@ -99,6 +99,8 @@
 
 @layer base {
   * { @apply border-border; }
+  /* Grid items default to min-width:auto and push wide content past the viewport on phones. */
+  .grid > * { min-width: 0; }
   html { color-scheme: light; }
   html.dark { color-scheme: dark; }
   body {

@@ -119,7 +119,13 @@ export default function Watchlist() {
             <div>
               <CardTitle>Change feed</CardTitle>
               <CardDescription>
-                Last 30 days: <span className="text-success">{summary.data?.new ?? 0} new</span> · {summary.data?.stopped ?? 0} stopped · <span className="text-gold">{summary.data?.scaled ?? 0} scaled</span>
+                {summary.data ? (
+                  <>Last 30 days: <span className="text-success">{summary.data.new} new</span> · {summary.data.stopped} stopped · <span className="text-gold">{summary.data.scaled} scaled</span></>
+                ) : summary.isError ? (
+                  "Couldn't load the 30-day summary"
+                ) : (
+                  "Loading the last 30 days…"
+                )}
               </CardDescription>
             </div>
           </CardHeader>

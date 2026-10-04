@@ -38,6 +38,7 @@ def resolve_scope(session: Session, scope: dict[str, Any]) -> list[Ad]:
 class AiWorker:
     def __init__(self) -> None:
         self.executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="ai-worker")
+        self.stopped = False
 
     def start(self, scope: dict[str, Any]) -> AiRun:
         if not ai.is_enabled():
@@ -65,6 +66,9 @@ class AiWorker:
                 session.commit()
 
     def recover(self) -> None:
+        if self.stopped:
+            self.executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="ai-worker")
+            self.stopped = False
         with session_scope() as session:
             for run in session.exec(select(AiRun).where(AiRun.status.in_(["queued", "running"]))).all():  # type: ignore[attr-defined]
                 run.status, run.error, run.finished_at = "failed", "Interrupted by app restart", utcnow()
@@ -72,6 +76,7 @@ class AiWorker:
             session.commit()
 
     def shutdown(self) -> None:
+        self.stopped = True
         self.executor.shutdown(wait=False, cancel_futures=True)
 
 

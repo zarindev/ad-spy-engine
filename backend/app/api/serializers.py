@@ -113,6 +113,7 @@ def competitor_out(c: Competitor, stats: dict[str, Any] | None = None) -> dict[s
         "name": c.name,
         "page_id": c.page_id,
         "logo_url": asset_url(c.logo_url),
+        "client_id": c.client_id,
         "created_at": c.created_at.isoformat() if c.created_at else None,
         "last_scan_at": c.last_scan_at.isoformat() if c.last_scan_at else None,
         **(stats or {}),

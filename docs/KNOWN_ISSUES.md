@@ -39,6 +39,15 @@ how the app degrades. Last verified against the live site: **2026-10-04** (count
 | Stopped detection | Needs the current scan to cover all of the competitor's ads. | If a scan stops at its max-ads limit, stopped ads aren't inferred and the summary says why. Set the watchlist's max ads above the competitor's ad count. |
 | Telegram / email | Tested against mocked transports (request format, auth, STARTTLS, error messages). | Use **Settings → Send test** after adding credentials to `.env`. Gmail needs an app password; port 465 uses implicit TLS, other ports use STARTTLS. |
 
+## Agency mode & reports
+
+| Area | Status | Notes |
+|---|---|---|
+| Brand's own ads | Matches ads whose page name contains the competitor name (or the competitor's Page ID). | Sub-brands with different names (e.g. "AG1" for "Athletic Greens") are kept only if the name appears in the page name. If nothing matches, all ads are kept. Toggle off to include everything. |
+| AI opportunities | Verified against a mocked client (request shape, structured output, fallback to data-derived opportunities on any error). Not yet run against the live API in this build. | Cost is recorded on each report (`options.ai_usage`). The model only receives measured numbers and top ads, and is told not to invent spend or performance figures. |
+| PDF | Chrome print engine; page numbers use CSS `@page` margin boxes (Chrome 131+). | Older Chrome versions render the PDF without the footer. Fonts load from Google Fonts. Offline, the PDF falls back to system fonts. |
+| Report size | Creatives are embedded as data URIs so the HTML is a single file. | A 30-winner report with large screenshots can reach 10–20 MB. Lower "Top winners to feature" for email. |
+
 ## Storage
 
 Each ad stores a PNG card screenshot (~60–150 KB) plus up to `max_media_per_ad` original images.

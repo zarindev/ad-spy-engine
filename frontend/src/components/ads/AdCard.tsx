@@ -1,6 +1,7 @@
 import { CalendarDays, ImageOff, Layers } from "lucide-react";
 import { motion } from "motion/react";
 import { useState } from "react";
+import { SaveToBoard } from "@/components/boards/SaveToBoard";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { Ad } from "@/lib/api";
 import { cn, titleCase } from "@/lib/utils";
@@ -34,9 +35,11 @@ interface CardProps {
   selected?: boolean;
   onSelect?: (ad: Ad, selected: boolean) => void;
   index?: number;
+  /** Show the "Save to swipe file" bookmark (hover). */
+  saveable?: boolean;
 }
 
-export function AdCard({ ad, onOpen, selected, onSelect, index = 0 }: CardProps) {
+export function AdCard({ ad, onOpen, selected, onSelect, index = 0, saveable = true }: CardProps) {
   return (
     <motion.article
       layout
@@ -71,14 +74,24 @@ export function AdCard({ ad, onOpen, selected, onSelect, index = 0 }: CardProps)
       <div className="space-y-2.5 p-3.5">
         <div className="flex items-center justify-between gap-2">
           <span className="truncate text-sm font-semibold">{ad.page_name ?? "Unknown page"}</span>
-          {onSelect && (
-            <Checkbox
-              checked={!!selected}
-              onCheckedChange={(v) => onSelect(ad, v === true)}
-              aria-label="Select ad"
-              className={cn("transition-opacity", selected ? "opacity-100" : "opacity-0 group-hover:opacity-100")}
-            />
-          )}
+          <div className="flex shrink-0 items-center gap-1.5">
+            {saveable && (
+              <SaveToBoard
+                adIds={[ad.id]}
+                variant="ghost"
+                size="icon-sm"
+                className="size-7 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
+              />
+            )}
+            {onSelect && (
+              <Checkbox
+                checked={!!selected}
+                onCheckedChange={(v) => onSelect(ad, v === true)}
+                aria-label="Select ad"
+                className={cn("transition-opacity", selected ? "opacity-100" : "opacity-0 group-hover:opacity-100")}
+              />
+            )}
+          </div>
         </div>
         {ad.headline && <p className="line-clamp-1 text-[13px] font-medium">{ad.headline}</p>}
         {ad.ad_copy && <p className="line-clamp-3 text-[13px] leading-relaxed text-muted-foreground">{ad.ad_copy}</p>}

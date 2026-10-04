@@ -5,6 +5,7 @@ import {
 import { useEffect, useState } from "react";
 import { AiAnalyzeButton } from "@/components/ai/AiAnalyzeButton";
 import { AnalysisCards } from "@/components/ai/AnalysisCards";
+import { SaveToBoard } from "@/components/boards/SaveToBoard";
 import { toast } from "sonner";
 import { ErrorState } from "@/components/States";
 import { Badge } from "@/components/ui/badge";
@@ -320,6 +321,7 @@ export function AdDetailSheet({ adId, onClose }: { adId: number | null; onClose:
           {ad && (
             <div className="flex gap-2">
               <CopyButton text={ad.library_id} label="Library ID" />
+              <SaveToBoard adIds={[ad.id]} />
               <Button variant="outline" size="sm" asChild>
                 <a href={ad.library_url} target="_blank" rel="noreferrer">
                   <ExternalLink /> Ad Library

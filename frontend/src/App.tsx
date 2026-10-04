@@ -13,6 +13,9 @@ const Settings = lazy(() => import("@/pages/Settings"));
 const Competitors = lazy(() => import("@/pages/Competitors"));
 const Watchlist = lazy(() => import("@/pages/Watchlist"));
 const CompetitorProfile = lazy(() => import("@/pages/CompetitorProfile"));
+const Compare = lazy(() => import("@/pages/Compare"));
+const Boards = lazy(() => import("@/pages/Boards"));
+const BoardDetail = lazy(() => import("@/pages/BoardDetail"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
 function PageFallback() {
@@ -37,6 +40,9 @@ export default function App() {
             ["/ads", Results],
             ["/competitors", Competitors],
             ["/competitors/:id", CompetitorProfile],
+            ["/compare", Compare],
+            ["/boards", Boards],
+            ["/boards/:id", BoardDetail],
             ["/watchlist", Watchlist],
             ["/reports", Reports],
             ["/settings", Settings],

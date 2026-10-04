@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, Moon, Search, Sun } from "lucide-react";
+import { Loader2, Menu, Moon, Search, Sun } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -42,21 +42,26 @@ function ScanStatusPill() {
   );
 }
 
-export function Topbar({ onSearch, theme, onToggleTheme }: { onSearch: () => void; theme: string; onToggleTheme: () => void }) {
+export function Topbar({
+  onSearch, onMenu, theme, onToggleTheme,
+}: { onSearch: () => void; onMenu: () => void; theme: string; onToggleTheme: () => void }) {
   const mac = typeof navigator !== "undefined" && /Mac/.test(navigator.platform);
   return (
-    <header className="glass sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border px-6">
+    <header className="glass sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border px-4 md:px-6">
+      <Button variant="ghost" size="icon" className="shrink-0 md:hidden" onClick={onMenu} aria-label="Open navigation">
+        <Menu />
+      </Button>
       <button
         type="button"
         onClick={onSearch}
-        className="flex h-9 w-full max-w-md items-center gap-2 rounded-lg border border-border bg-background/40 px-3 text-sm text-muted-foreground transition-colors hover:border-primary/40"
+        className="flex h-9 w-full max-w-md min-w-0 items-center gap-2 rounded-lg border border-border bg-background/40 px-3 text-sm text-muted-foreground transition-colors hover:border-primary/40"
       >
         <Search className="size-4" />
-        <span className="flex-1 text-left">Search ads, scans, pages…</span>
-        <kbd className="num rounded border border-border bg-muted px-1.5 text-[10px]">{mac ? "⌘" : "Ctrl"} K</kbd>
+        <span className="flex-1 truncate text-left">Search ads, scans, pages…</span>
+        <kbd className="num hidden rounded sm:inline border border-border bg-muted px-1.5 text-[10px]">{mac ? "⌘" : "Ctrl"} K</kbd>
       </button>
-      <div className="ml-auto flex items-center gap-2">
-        <ScanStatusPill />
+      <div className="ml-auto flex shrink-0 items-center gap-2">
+        <span className="hidden sm:block"><ScanStatusPill /></span>
         <Button variant="ghost" size="icon" onClick={onToggleTheme} aria-label="Toggle theme">
           {theme === "dark" ? <Sun /> : <Moon />}
         </Button>

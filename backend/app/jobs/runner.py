@@ -9,6 +9,7 @@ from __future__ import annotations
 import logging
 import re
 import threading
+from collections import Counter
 from collections.abc import Callable
 from concurrent.futures import Future
 from pathlib import Path
@@ -435,6 +436,13 @@ def _adopt_display_casing(session: Session, competitor: Competitor) -> None:
     for name in names:
         if name and re.sub(r"[^a-z0-9]", "", name.lower()) == target:
             competitor.name = name
+            return
+    # "athletic greens" inside "AG1 by Athletic Greens" → "Athletic Greens"
+    query = competitor.name
+    for name, _ in Counter(n for n in names if n).most_common():
+        idx = name.lower().find(query)
+        if idx >= 0 and name[idx : idx + len(query)] != query:
+            competitor.name = name[idx : idx + len(query)]
             return
 
 

@@ -91,6 +91,24 @@ the JSON degrades the data but doesn't break scans.
 - `notify/`: after a scheduled scan finishes with changes (or is blocked or fails), the worker
   sends one alert to each configured channel. A failing channel never blocks the other.
 
+## Agency mode & reports
+
+- `analysis/insights.py` holds the brand-level numbers shared by Compare and reports: format,
+  placement, CTA and longevity mix, winner rate, launch cadence, variation groups. It also
+  builds templated highlights and rule-based opportunities, each sentence citing the numbers it
+  came from. `is_own_ad` keeps a brand's own pages, because keyword scans also return other
+  advertisers that mention it.
+- `reports/builder.py` turns a `ReportSpec` (competitors, optional scan, client name, sections,
+  top N, AI on/off) into one self-contained HTML file from `templates/brand_report.html.j2`. With AI
+  enabled, `ai.strategy_brief` sends the measured data and top ads to Claude with a JSON schema
+  and returns an executive summary and 3–5 opportunities. Any failure falls back to the
+  rule-based opportunities and is recorded on the report.
+- `reports/pdf.py` prints the HTML with headless Chrome's DevTools `Page.printToPDF`
+  (`preferCSSPageSize`), so the template's `@page` rules control A4 size, margins, the
+  margin-free cover and "Page X of Y" footers.
+- Clients (`client`, `competitor.client_id`) and swipe files (`board`, `boarditem` with note and
+  tags) are plain CRUD routers (`api/clients.py`, `api/boards.py`).
+
 ## Data model
 
 - `competitor`: one tracked brand (name, optional Page ID, local logo).
@@ -102,6 +120,8 @@ the JSON degrades the data but doesn't break scans.
 - `landingpage`: one screenshot per normalized destination URL.
 - `watchlistitem` / `changeevent`: schedules and detected changes between scans.
 - `adanalysis` / `airun`: cached AI results per Library ID, and per-run token/cost accounting.
+- `client`: agency client folders; `competitor.client_id` assigns a brand to one.
+- `board` / `boarditem`: swipe files. Each item is a saved ad with a note and tags (unique per board).
 
 Schema changes go through Alembic (`backend/app/db/migrations`). Migrations run automatically at startup.
 

@@ -1,6 +1,7 @@
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { ArrowDownWideNarrow, Copy, Download, FilterX, Layers, LayoutGrid, List, Loader2, Search, SearchX, X } from "lucide-react";
 import { AiAnalyzeButton } from "@/components/ai/AiAnalyzeButton";
+import { SaveToBoard } from "@/components/boards/SaveToBoard";
 import { Switch } from "@/components/ui/switch";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
@@ -249,6 +250,7 @@ export default function Results() {
           >
             <Copy /> Copy Library IDs
           </Button>
+          <SaveToBoard adIds={[...selected]} label="Save to board" />
           <AiAnalyzeButton size="sm" scope={{ ad_ids: [...selected], limit: 2000 }} label="Analyze selected" />
           <Button size="sm" variant="ghost" onClick={() => setSelected(new Set(items.map((a) => a.id)))}>
             Select all loaded

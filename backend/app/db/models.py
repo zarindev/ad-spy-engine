@@ -25,12 +25,22 @@ class ScanStatus:
     FINISHED = {COMPLETED, FAILED, BLOCKED, CANCELLED, INTERRUPTED}
 
 
+class Client(SQLModel, table=True):
+    """Agency mode: a client folder that groups the competitors tracked for one customer."""
+
+    id: int | None = Field(default=None, primary_key=True)
+    name: str = Field(index=True, unique=True)
+    notes: str | None = None
+    created_at: datetime = Field(default_factory=utcnow)
+
+
 class Competitor(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     name: str = Field(index=True)
     slug: str = Field(index=True, unique=True)
     page_id: str | None = Field(default=None, index=True)
     logo_url: str | None = None
+    client_id: int | None = Field(default=None, foreign_key="client.id", index=True)
     created_at: datetime = Field(default_factory=utcnow)
     last_scan_at: datetime | None = None
 
@@ -236,3 +246,25 @@ class ChangeEvent(SQLModel, table=True):
     kind: str = Field(index=True)  # new | stopped | scaled
     details: dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSON))
     created_at: datetime = Field(default_factory=utcnow, index=True)
+
+
+class Board(SQLModel, table=True):
+    """A swipe file: a hand-picked collection of ads with notes and tags."""
+
+    id: int | None = Field(default=None, primary_key=True)
+    name: str
+    description: str | None = None
+    client_id: int | None = Field(default=None, foreign_key="client.id", index=True)
+    created_at: datetime = Field(default_factory=utcnow)
+    updated_at: datetime = Field(default_factory=utcnow)
+
+
+class BoardItem(SQLModel, table=True):
+    __table_args__ = (UniqueConstraint("board_id", "ad_id"),)
+
+    id: int | None = Field(default=None, primary_key=True)
+    board_id: int = Field(foreign_key="board.id", index=True)
+    ad_id: int = Field(foreign_key="ad.id", index=True)
+    note: str | None = None
+    tags: list[str] = Field(default_factory=list, sa_column=Column(JSON))
+    added_at: datetime = Field(default_factory=utcnow)

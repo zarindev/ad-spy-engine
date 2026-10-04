@@ -140,7 +140,10 @@ class ScanWorker:
             log.exception("Sending alert for scan %s failed", scan.id)
 
     def recover(self) -> dict[str, int]:
-        """Called on startup."""
+        """Called on startup (also after a previous shutdown in the same process, e.g. tests)."""
+        if self.shutting_down:
+            self.executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="scan-worker")
+            self.shutting_down = False
         interrupted = requeued = 0
         with session_scope() as session:
             for scan in session.exec(select(Scan).where(Scan.status == ScanStatus.RUNNING)).all():

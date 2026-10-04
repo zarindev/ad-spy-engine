@@ -5,12 +5,15 @@ import { cn } from "@/lib/utils";
 import { LogoMark } from "./Logo";
 import { NAV } from "./nav";
 
-export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
+export function Sidebar({
+  collapsed, onToggle, onNavigate, drawer = false,
+}: { collapsed: boolean; onToggle?: () => void; onNavigate?: () => void; drawer?: boolean }) {
   return (
     <aside
       className={cn(
-        "sticky top-0 flex h-screen shrink-0 flex-col border-r border-border bg-sidebar/80 backdrop-blur-xl transition-[width] duration-200",
-        collapsed ? "w-[68px]" : "w-60",
+        "flex shrink-0 flex-col border-r border-border bg-sidebar/80 backdrop-blur-xl transition-[width] duration-200",
+        drawer ? "h-full w-64 bg-sidebar" : "sticky top-0 h-screen",
+        !drawer && (collapsed ? "w-[68px]" : "w-60"),
       )}
     >
       <div className={cn("flex h-16 items-center gap-2.5 px-4", collapsed && "justify-center px-0")}>
@@ -29,6 +32,7 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
               key={to}
               to={to}
               end={"end" in rest}
+              onClick={onNavigate}
               className={({ isActive }) =>
                 cn(
                   "relative flex h-9 items-center gap-3 rounded-lg px-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground",
@@ -55,19 +59,21 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
           );
         })}
       </nav>
-      <div className="p-3">
-        <button
-          type="button"
-          onClick={onToggle}
-          className={cn(
-            "flex h-9 w-full items-center gap-3 rounded-lg px-2.5 text-xs text-muted-foreground hover:bg-accent hover:text-foreground",
-            collapsed && "justify-center px-0",
-          )}
-        >
-          {collapsed ? <ChevronsRight className="size-4" /> : <ChevronsLeft className="size-4" />}
-          {!collapsed && "Collapse"}
-        </button>
-      </div>
+      {onToggle && (
+        <div className="p-3">
+          <button
+            type="button"
+            onClick={onToggle}
+            className={cn(
+              "flex h-9 w-full items-center gap-3 rounded-lg px-2.5 text-xs text-muted-foreground hover:bg-accent hover:text-foreground",
+              collapsed && "justify-center px-0",
+            )}
+          >
+            {collapsed ? <ChevronsRight className="size-4" /> : <ChevronsLeft className="size-4" />}
+            {!collapsed && "Collapse"}
+          </button>
+        </div>
+      )}
     </aside>
   );
 }

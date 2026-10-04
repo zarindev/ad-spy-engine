@@ -189,23 +189,10 @@ def make_client():  # noqa: ANN201
     return anthropic.Anthropic(max_retries=3)
 
 
-def analyze_batch(client: Any, model: str, ads: list[Ad], max_chars: int) -> tuple[list[Analysis], int, int]:
-    """One structured-output request for a batch of ads. Returns (analyses, input_tokens, output_tokens)."""
+def _structured_call(client: Any, request: dict[str, Any], max_tokens_hint: str) -> tuple[str, int, int]:
+    """Send a structured-output request. Returns (json text, input_tokens, output_tokens)."""
     import anthropic
 
-    payload = [ad_payload(a, max_chars) for a in ads]
-    request: dict[str, Any] = {
-        "model": model,
-        "max_tokens": 16000,
-        "system": SYSTEM_PROMPT,
-        "messages": [
-            {
-                "role": "user",
-                "content": f"Analyze these {len(payload)} ads:\n\n{json.dumps(payload, ensure_ascii=False, indent=1)}",
-            }
-        ],
-        "output_config": {"effort": "low", "format": {"type": "json_schema", "schema": OUTPUT_SCHEMA}},
-    }
     try:
         # Server-side refusal fallback (Claude API): a declined request is retried on a fallback model.
         response = client.beta.messages.create(
@@ -220,10 +207,29 @@ def analyze_batch(client: Any, model: str, ads: list[Ad], max_chars: int) -> tup
     in_tok = int(getattr(usage, "input_tokens", 0) or 0)
     out_tok = int(getattr(usage, "output_tokens", 0) or 0)
     if response.stop_reason == "refusal":
-        raise RuntimeError("Claude declined to analyze this batch")
+        raise RuntimeError("Claude declined this request")
     if response.stop_reason == "max_tokens":
-        raise RuntimeError("Response hit max_tokens — lower ai.batch_size")
+        raise RuntimeError(f"Response hit max_tokens — {max_tokens_hint}")
     text = next((b.text for b in response.content if b.type == "text"), "")
+    return text, in_tok, out_tok
+
+
+def analyze_batch(client: Any, model: str, ads: list[Ad], max_chars: int) -> tuple[list[Analysis], int, int]:
+    """One structured-output request for a batch of ads. Returns (analyses, input_tokens, output_tokens)."""
+    payload = [ad_payload(a, max_chars) for a in ads]
+    request: dict[str, Any] = {
+        "model": model,
+        "max_tokens": 16000,
+        "system": SYSTEM_PROMPT,
+        "messages": [
+            {
+                "role": "user",
+                "content": f"Analyze these {len(payload)} ads:\n\n{json.dumps(payload, ensure_ascii=False, indent=1)}",
+            }
+        ],
+        "output_config": {"effort": "low", "format": {"type": "json_schema", "schema": OUTPUT_SCHEMA}},
+    }
+    text, in_tok, out_tok = _structured_call(client, request, "lower ai.batch_size")
     try:
         parsed = BatchResult.model_validate_json(text)
     except ValidationError as exc:
@@ -281,6 +287,85 @@ def run_analysis(
     session.add(run)
     session.commit()
     return run
+
+
+# ----------------------------------------------------------------------------- strategy brief
+STRATEGY_PROMPT = """You are a senior creative strategist at a performance marketing agency. You receive measured data about the Meta ads of one client's competitors, collected from the public Meta Ad Library: per-brand statistics and their highest-scoring ads (Winner Score is a heuristic from how long an ad has run, how many variations it has, placements and whether it is still active; it is not spend or conversion data).
+
+Write for the client, who will read this in a PDF report:
+- executive_summary: 3-4 sentences on what the competitors' advertising tells us. Cite specific numbers from the data.
+- opportunities: 3 to 5 concrete things the client should test next. Each needs a short title (max 8 words), why (grounded in the numbers or ads provided, citing them), how_to_apply (a specific creative brief: format, hook, angle or offer), and evidence_library_ids (Library IDs from the provided ads that support it; may be empty).
+
+Use only the data provided. Do not invent spend, revenue, CTR or conversion figures. Write in plain, confident English without hype."""
+
+
+class Opportunity(BaseModel):
+    title: str
+    why: str
+    how_to_apply: str
+    evidence_library_ids: list[str]
+
+
+class StrategyBrief(BaseModel):
+    executive_summary: str
+    opportunities: list[Opportunity]
+
+
+STRATEGY_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "executive_summary": {"type": "string"},
+        "opportunities": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "title": {"type": "string"},
+                    "why": {"type": "string"},
+                    "how_to_apply": {"type": "string"},
+                    "evidence_library_ids": {"type": "array", "items": {"type": "string"}},
+                },
+                "required": ["title", "why", "how_to_apply", "evidence_library_ids"],
+                "additionalProperties": False,
+            },
+        },
+    },
+    "required": ["executive_summary", "opportunities"],
+    "additionalProperties": False,
+}
+
+
+def strategy_brief(brief: dict[str, Any], client: Any | None = None) -> tuple[StrategyBrief, dict[str, Any]]:
+    """AI executive summary + "Opportunities for you". Returns (brief, usage incl. cost)."""
+    if not is_enabled() and client is None:
+        raise AIDisabled("Set ANTHROPIC_API_KEY in .env to enable AI opportunities.")
+    model = ai_model()
+    request: dict[str, Any] = {
+        "model": model,
+        "max_tokens": 8000,
+        "system": STRATEGY_PROMPT,
+        "messages": [
+            {
+                "role": "user",
+                "content": "Competitor data:\n\n"
+                + json.dumps(brief, ensure_ascii=False, default=str, indent=1),
+            }
+        ],
+        "output_config": {"effort": "medium", "format": {"type": "json_schema", "schema": STRATEGY_SCHEMA}},
+    }
+    text, in_tok, out_tok = _structured_call(client or make_client(), request, "reduce the report scope")
+    try:
+        parsed = StrategyBrief.model_validate_json(text)
+    except ValidationError as exc:
+        raise RuntimeError(f"Invalid JSON from model: {exc.errors()[:1]}") from exc
+    pin, pout = price_for(model)
+    usage = {
+        "model": model,
+        "input_tokens": in_tok,
+        "output_tokens": out_tok,
+        "cost_usd": round(in_tok / 1e6 * pin + out_tok / 1e6 * pout, 4),
+    }
+    return parsed, usage
 
 
 # ----------------------------------------------------------------------------- aggregates

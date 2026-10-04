@@ -253,6 +253,7 @@ export interface Competitor {
   name: string;
   page_id: string | null;
   logo_url: string | null;
+  client_id: number | null;
   last_scan_at: string | null;
   ad_count: number;
   active_ads: number;
@@ -278,7 +279,16 @@ export interface Report {
   kind: string;
   scan_id: number | null;
   competitor_ids: number[];
-  options: { sections?: string[]; top_n?: number };
+  options: {
+    sections?: string[];
+    top_n?: number;
+    client_name?: string | null;
+    ai?: boolean;
+    own_only?: boolean;
+    opportunities_source?: "ai" | "data";
+    ads?: number;
+    ai_usage?: { model?: string; cost_usd?: number; input_tokens?: number; output_tokens?: number; error?: string };
+  };
   html_url: string | null;
   pdf_url: string | null;
   status: "ready" | "failed";
@@ -294,12 +304,113 @@ export interface SettingsPayload {
       download_videos: boolean; max_media_mb: number; max_media_per_ad: number; no_new_ads_attempts: number;
     };
     scoring: { weights: Record<string, number>; thresholds: { winner: number; promising: number }; longevity_full_days: number };
-    reports: { agency_name: string; primary_color: string; accent_color: string; logo_path: string | null };
+    reports: { agency_name: string; primary_color: string; accent_color: string; logo_path?: string | null };
     ai: { model: string; batch_size: number };
   };
   integrations: { ai: { configured: boolean; model: string }; telegram: { configured: boolean }; email: { configured: boolean } };
+  logo_url: string | null;
   data_dir: string;
   undetected_available: boolean;
+}
+
+export interface Client {
+  id: number;
+  name: string;
+  notes: string | null;
+  competitor_ids: number[];
+  board_count: number;
+  created_at: string | null;
+}
+
+export interface Board {
+  id: number;
+  name: string;
+  description: string | null;
+  client_id: number | null;
+  client_name: string | null;
+  item_count: number;
+  covers: string[];
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+export interface BoardItem {
+  id: number;
+  note: string | null;
+  tags: string[];
+  added_at: string | null;
+  ad: Ad;
+}
+
+export interface BoardDetail extends Board {
+  items: BoardItem[];
+  tags: NameCount[];
+}
+
+export interface Share extends NameCount { share: number }
+
+export interface BrandStats {
+  ads: number;
+  active: number;
+  winners: number;
+  promising: number;
+  winner_rate: number;
+  avg_score: number;
+  avg_days: number;
+  median_days: number;
+  max_days: number;
+  launched_30d: number;
+  variation_groups: number;
+  largest_group: number;
+  other_advertisers_excluded: number;
+}
+
+export interface BrandSummary {
+  id: number;
+  name: string;
+  logo: string | null;
+  client_id: number | null;
+  last_scan_at: string | null;
+  stats: BrandStats;
+  formats: Share[];
+  winner_formats: Share[];
+  format_winner_rate: Record<string, { ads: number; winner_rate: number }>;
+  placements: Share[];
+  ctas: Share[];
+  winner_ctas: Share[];
+  longevity: Share[];
+  cadence: { week: string; launched: number }[];
+  insights: AiInsights;
+  top_ads: Ad[];
+  largest_group_lead: Ad | null;
+}
+
+export interface Opportunity {
+  title: string;
+  detail: string;
+  evidence: string;
+  library_id?: string;
+}
+
+export interface CompareData {
+  brands: BrandSummary[];
+  highlights: string[];
+  opportunities: Opportunity[];
+}
+
+export type ReportKind = "scan" | "competitor" | "compare" | "client";
+export interface ReportCreate {
+  kind: ReportKind;
+  scan_id?: number;
+  competitor_ids?: number[];
+  client_id?: number;
+  client_name?: string;
+  title?: string;
+  sections: string[];
+  top_n: number;
+  ai: boolean;
+  own_only: boolean;
+  pdf: boolean;
 }
 
 export interface Paged<T> { items: T[]; total: number }
@@ -401,8 +512,37 @@ export const api = {
   changeSummary: (days = 30) => request<{ days: number; new: number; stopped: number; scaled: number }>(`/api/changes/summary?days=${days}`),
   notifyTest: (channel: "telegram" | "email") => request<{ ok: boolean; channel: string }>("/api/settings/notify/test", { method: "POST", body: JSON.stringify({ channel }) }),
   reports: () => request<Report[]>("/api/reports"),
-  createReport: (body: { scan_id: number; title?: string; sections: string[]; top_n: number; pdf: boolean }) =>
-    request<Report>("/api/reports", { method: "POST", body: JSON.stringify(body) }),
+  createReport: (body: ReportCreate) => request<Report>("/api/reports", { method: "POST", body: JSON.stringify(body) }),
+  renameCompetitor: (id: number, name: string) =>
+    request<Competitor>(`/api/competitors/${id}`, { method: "PATCH", body: JSON.stringify({ name }) }),
+  clients: () => request<Client[]>("/api/clients"),
+  createClient: (body: { name: string; notes?: string; competitor_ids?: number[] }) =>
+    request<Client>("/api/clients", { method: "POST", body: JSON.stringify(body) }),
+  updateClient: (id: number, body: { name?: string; notes?: string }) =>
+    request<Client>(`/api/clients/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
+  deleteClient: (id: number) => request<{ ok: boolean }>(`/api/clients/${id}`, { method: "DELETE" }),
+  assignClient: (competitorId: number, clientId: number | null) =>
+    request<{ ok: boolean }>(`/api/clients/assign/${competitorId}`, { method: "PUT", body: JSON.stringify({ client_id: clientId }) }),
+  compare: (ids: number[], ownOnly = true) => request<CompareData>(`/api/compare${qs({ ids: ids.join(","), own_only: ownOnly })}`),
+  boards: () => request<Board[]>("/api/boards"),
+  board: (id: number, tag?: string) => request<BoardDetail>(`/api/boards/${id}${qs({ tag })}`),
+  boardsForAd: (adId: number) => request<number[]>(`/api/boards/for-ad/${adId}`),
+  boardTags: () => request<NameCount[]>("/api/boards/tags"),
+  createBoard: (body: { name: string; description?: string; client_id?: number | null; ad_ids?: number[] }) =>
+    request<Board>("/api/boards", { method: "POST", body: JSON.stringify(body) }),
+  updateBoard: (id: number, body: { name?: string; description?: string; client_id?: number | null; clear_client?: boolean }) =>
+    request<Board>(`/api/boards/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
+  deleteBoard: (id: number) => request<{ ok: boolean }>(`/api/boards/${id}`, { method: "DELETE" }),
+  addToBoard: (id: number, adIds: number[]) =>
+    request<{ added: number; board: Board }>(`/api/boards/${id}/items`, { method: "POST", body: JSON.stringify({ ad_ids: adIds }) }),
+  removeAdFromBoard: (id: number, adId: number) => request<{ ok: boolean }>(`/api/boards/${id}/ads/${adId}`, { method: "DELETE" }),
+  updateBoardItem: (boardId: number, itemId: number, body: { note?: string; tags?: string[] }) =>
+    request<BoardItem>(`/api/boards/${boardId}/items/${itemId}`, { method: "PATCH", body: JSON.stringify(body) }),
+  removeBoardItem: (boardId: number, itemId: number) =>
+    request<{ ok: boolean }>(`/api/boards/${boardId}/items/${itemId}`, { method: "DELETE" }),
+  uploadLogo: (dataUrl: string) =>
+    request<SettingsPayload>("/api/settings/logo", { method: "POST", body: JSON.stringify({ data_url: dataUrl }) }),
+  deleteLogo: () => request<SettingsPayload>("/api/settings/logo", { method: "DELETE" }),
   deleteReport: (id: number) => request<{ ok: boolean }>(`/api/reports/${id}`, { method: "DELETE" }),
   settings: () => request<SettingsPayload>("/api/settings"),
   updateSettings: (patch: Record<string, Record<string, unknown>>) =>

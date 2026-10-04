@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Bot, CheckCircle2, Circle, Folder, Gauge, Loader2, Palette, Save, ScanSearch, Send } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Bot, CheckCircle2, Circle, Folder, Gauge, ImageUp, Loader2, Palette, Save, ScanSearch, Send, Trash2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ErrorState, PageHeader } from "@/components/States";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +33,97 @@ function NumberInput({ value, onChange, min, max, step = 1, suffix }: { value: n
       <Input type="number" className="num h-8 w-24 text-right" value={value} min={min} max={max} step={step} onChange={(e) => onChange(Number(e.target.value))} />
       {suffix && <span className="text-xs text-muted-foreground">{suffix}</span>}
     </div>
+  );
+}
+
+function BrandingCard({
+  draft, logoUrl, saving, onChange, onSave,
+}: {
+  draft: S["reports"];
+  logoUrl: string | null;
+  saving: boolean;
+  onChange: (r: S["reports"]) => void;
+  onSave: () => void;
+}) {
+  const qc = useQueryClient();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const logo = useMutation({
+    mutationFn: async (file: File | null) => {
+      if (!file) return api.deleteLogo();
+      if (file.size > 2 * 1024 * 1024) throw new Error("Logo must be 2 MB or smaller");
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = () => reject(new Error("Couldn't read the file"));
+        reader.readAsDataURL(file);
+      });
+      return api.uploadLogo(dataUrl);
+    },
+    onSuccess: (res, file) => {
+      qc.setQueryData(["settings"], (old: SettingsPayload | undefined) => (old ? { ...old, logo_url: res.logo_url } : res));
+      toast.success(file ? "Logo uploaded" : "Logo removed");
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Upload failed"),
+  });
+  return (
+    <Card>
+      <CardHeader>
+        <div>
+          <CardTitle className="flex items-center gap-2"><Palette className="size-4 text-primary" /> Report branding</CardTitle>
+          <CardDescription>Your logo, agency name and colors on every report cover and chart.</CardDescription>
+        </div>
+        <Button size="sm" disabled={saving || !draft.agency_name.trim()} onClick={onSave}><Save /> Save</Button>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div
+          className="relative overflow-hidden rounded-xl p-5 text-white"
+          style={{ background: `radial-gradient(120% 90% at 0% 0%, ${draft.primary_color}d9, transparent 65%), radial-gradient(90% 80% at 100% 100%, ${draft.accent_color}4d, transparent 70%), #0B0B12` }}
+          aria-label="Cover preview"
+        >
+          <div className="flex items-center gap-2">
+            {logoUrl && <img src={logoUrl} alt="" className="h-7 max-w-28 object-contain" />}
+            <span className="text-sm font-bold">{draft.agency_name || "Agency name"}</span>
+          </div>
+          <div className="mt-6 text-[10px] font-semibold tracking-[0.18em] text-white/70 uppercase">Competitor ad intelligence report</div>
+          <div className="mt-1 text-xl font-extrabold tracking-tight">Brand A vs Brand B</div>
+          <div className="text-xs text-white/80">Prepared for <b className="text-white">Your client</b></div>
+          <div className="mt-3 h-1 w-10 rounded-full" style={{ background: draft.accent_color }} />
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/svg+xml"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) logo.mutate(f);
+              e.target.value = "";
+            }}
+          />
+          <Button variant="outline" size="sm" disabled={logo.isPending} onClick={() => fileRef.current?.click()}>
+            {logo.isPending ? <Loader2 className="animate-spin" /> : <ImageUp />} {logoUrl ? "Replace logo" : "Upload logo"}
+          </Button>
+          {logoUrl && <Button variant="ghost" size="sm" disabled={logo.isPending} onClick={() => logo.mutate(null)}><Trash2 /> Remove</Button>}
+          <span className="text-xs text-muted-foreground">PNG, JPG, WebP or SVG up to 2 MB. Light logos read best on the dark cover.</span>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="sm:col-span-3">
+            <Label htmlFor="agency-name">Agency name</Label>
+            <Input id="agency-name" className="mt-1.5" maxLength={80} value={draft.agency_name} onChange={(e) => onChange({ ...draft, agency_name: e.target.value })} />
+          </div>
+          {(["primary_color", "accent_color"] as const).map((k) => (
+            <div key={k}>
+              <Label>{k === "primary_color" ? "Primary" : "Accent"}</Label>
+              <div className="mt-1.5 flex items-center gap-2">
+                <input type="color" aria-label={k === "primary_color" ? "Primary color" : "Accent color"} value={draft[k]} onChange={(e) => onChange({ ...draft, [k]: e.target.value })} className="size-8 cursor-pointer rounded-md border border-border bg-transparent" />
+                <span className="num text-xs text-muted-foreground">{draft[k]}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -153,30 +244,13 @@ export default function Settings() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <div>
-                <CardTitle className="flex items-center gap-2"><Palette className="size-4 text-primary" /> Report branding</CardTitle>
-                <CardDescription>Shown on generated reports.</CardDescription>
-              </div>
-              <Button size="sm" disabled={save.isPending} onClick={() => save.mutate({ reports: draft.reports })}><Save /> Save</Button>
-            </CardHeader>
-            <CardContent className="grid gap-3 sm:grid-cols-3">
-              <div className="sm:col-span-3">
-                <Label>Agency name</Label>
-                <Input className="mt-1.5" value={draft.reports.agency_name} onChange={(e) => setDraft({ ...draft, reports: { ...draft.reports, agency_name: e.target.value } })} />
-              </div>
-              {(["primary_color", "accent_color"] as const).map((k) => (
-                <div key={k}>
-                  <Label>{k === "primary_color" ? "Primary" : "Accent"}</Label>
-                  <div className="mt-1.5 flex items-center gap-2">
-                    <input type="color" value={draft.reports[k]} onChange={(e) => setDraft({ ...draft, reports: { ...draft.reports, [k]: e.target.value } })} className="size-8 cursor-pointer rounded-md border border-border bg-transparent" />
-                    <span className="num text-xs text-muted-foreground">{draft.reports[k]}</span>
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+          <BrandingCard
+            draft={draft.reports}
+            logoUrl={q.data.logo_url}
+            saving={save.isPending}
+            onChange={(reports) => setDraft({ ...draft, reports })}
+            onSave={() => save.mutate({ reports: { agency_name: draft.reports.agency_name, primary_color: draft.reports.primary_color, accent_color: draft.reports.accent_color } })}
+          />
 
           <Card>
             <CardHeader>
