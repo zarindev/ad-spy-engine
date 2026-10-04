@@ -482,6 +482,7 @@ export interface AdQuery {
 }
 
 export const api = {
+  health: () => request<{ ok: boolean; version: string; demo: boolean }>("/api/health"),
   dashboard: () => request<DashboardStats>("/api/stats/dashboard"),
   scans: (p: { limit?: number; offset?: number; competitor_id?: number; status?: string } = {}) =>
     request<Paged<Scan>>(`/api/scans${qs(p)}`),
@@ -542,6 +543,8 @@ export const api = {
     request<{ ok: boolean }>(`/api/boards/${boardId}/items/${itemId}`, { method: "DELETE" }),
   uploadLogo: (dataUrl: string) =>
     request<SettingsPayload>("/api/settings/logo", { method: "POST", body: JSON.stringify({ data_url: dataUrl }) }),
+  clearData: () =>
+    request<{ ok: boolean; deleted: { ads: number; scans: number } }>("/api/settings/clear-data", { method: "POST", body: JSON.stringify({ confirm: "DELETE" }) }),
   deleteLogo: () => request<SettingsPayload>("/api/settings/logo", { method: "DELETE" }),
   deleteReport: (id: number) => request<{ ok: boolean }>(`/api/reports/${id}`, { method: "DELETE" }),
   settings: () => request<SettingsPayload>("/api/settings"),

@@ -119,7 +119,9 @@ class AIDisabled(RuntimeError):
 
 
 def is_enabled() -> bool:
-    return bool(env("ANTHROPIC_API_KEY"))
+    from app.core.demo import is_demo
+
+    return bool(env("ANTHROPIC_API_KEY")) and not is_demo()
 
 
 def ai_settings() -> dict[str, Any]:

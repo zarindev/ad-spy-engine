@@ -2,7 +2,25 @@
 
 All notable changes to Ad Spy Engine are documented here. Format: [Keep a Changelog](https://keepachangelog.com/).
 
-## [Unreleased]
+## [1.0.0] - 2026-10-04
+
+### Phase 6: Showcase package
+- `scripts/seed_demo.py`: fictional demo dataset (Lumen Skincare, Dewdrop Labs, Northpeak Outdoor,
+  Brewlab Coffee) with generated creatives, logos and landing pages, plus three dated scans per brand
+  so the change log has real new, stopped and scaled events. It also seeds client folders, swipe files,
+  watchlist schedules, demo branding and two sample reports built by the real report builder.
+- Demo mode (`run.py --demo`): "Demo data" badge in the top bar. Live scans, AI runs, schedules,
+  landing captures and clearing data are refused with a clear message. Demo mode now loads the
+  demo folder's own settings (it previously read the real settings first).
+- `scripts/benchmark.py`: runs real scans and writes `docs/benchmarks.json` (ads/min, success
+  rate, field coverage, environment, and a manual-time estimate with its assumption stated).
+- `scripts/capture_screenshots.py`: 12 screens × light/dark at 1440×900 from a demo server.
+- `docs/assets/banner.svg`, `logo.svg`, full README, `docs/LEGAL.md`.
+- Case study: `docs/case-study/case-study.html` (9 slides at 1600×1200), `CASE_STUDY.md` with a
+  ready-to-paste Upwork entry, `scripts/export_case_study.py` → PDF + PNG slides + thumbnail.
+- Settings → Danger zone: clear all scans, ads, competitors, clients, boards, reports and files
+  (typed confirmation; settings and logo kept).
+- Fix: worker thread pools are recreated when the app restarts in the same process.
 
 ### Phase 5 — Agency mode & reports
 - Client folders: group competitors under a client name (create, rename, notes, delete keeps the

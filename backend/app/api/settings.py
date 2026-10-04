@@ -161,3 +161,73 @@ def delete_logo() -> dict:
         old.unlink(missing_ok=True)
     save_override({"reports": {"logo_path": None}})
     return read_settings()
+
+
+class ClearData(BaseModel):
+    confirm: str
+
+
+@router.post("/clear-data")
+def clear_data(body: ClearData) -> dict:
+    """Danger zone: delete every scan, ad, competitor, report and downloaded file. Settings stay."""
+    import shutil
+
+    from sqlmodel import delete
+
+    from app.core.demo import require_live
+    from app.core.paths import reports_dir
+    from app.db.models import (
+        AdAnalysis,
+        AdSnapshot,
+        AiRun,
+        Board,
+        BoardItem,
+        ChangeEvent,
+        Client,
+        Competitor,
+        LandingPage,
+        Report,
+        Scan,
+        ScanStatus,
+        WatchlistItem,
+    )
+    from app.jobs.scheduler import scheduler
+
+    require_live()
+    if body.confirm != "DELETE":
+        raise HTTPException(422, "Type DELETE to confirm")
+    with session_scope() as session:
+        busy = session.exec(
+            select(Scan).where(Scan.status.in_([ScanStatus.QUEUED, ScanStatus.RUNNING]))  # type: ignore[attr-defined]
+        ).first()
+        if busy is not None:
+            raise HTTPException(409, "A scan is running. Cancel it first.")
+        counts = {
+            "ads": len(session.exec(select(Ad.id)).all()),
+            "scans": len(session.exec(select(Scan.id)).all()),
+        }
+        for model in (
+            BoardItem,
+            Board,
+            ChangeEvent,
+            WatchlistItem,
+            AdAnalysis,
+            AiRun,
+            AdSnapshot,
+            Report,
+            LandingPage,
+            Ad,
+            Scan,
+            Competitor,
+            Client,
+        ):
+            session.exec(delete(model))  # type: ignore[call-overload]
+        session.commit()
+    branding = media_dir() / "_branding"
+    for folder in (media_dir(), reports_dir()):
+        for child in folder.iterdir():
+            if child == branding:
+                continue  # the agency logo is a setting, not scan data
+            shutil.rmtree(child) if child.is_dir() else child.unlink(missing_ok=True)
+    scheduler.sync()
+    return {"ok": True, "deleted": counts}

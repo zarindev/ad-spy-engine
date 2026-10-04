@@ -13,6 +13,7 @@ from app.analysis.grouping import group_label
 from app.analysis.scoring import badge_range
 from app.api.scans import ads_to_csv
 from app.api.serializers import ad_out, landing_out
+from app.core.demo import require_live
 from app.db.models import Ad, AdAnalysis, AdSnapshot, Competitor, Scan
 from app.db.session import session_scope
 from app.scraper.landing import capture_landing_pages, is_capturable, landing_for
@@ -197,4 +198,5 @@ def _capture_landing(ad_id: int) -> dict:
 
 @router.post("/{ad_id}/landing")
 async def capture_landing(ad_id: int) -> dict:
+    require_live()
     return await run_in_threadpool(_capture_landing, ad_id)

@@ -132,6 +132,15 @@ Radix primitives. TanStack Query handles server state, SSE (`EventSource`) carri
 and Motion handles micro-animations. In production FastAPI serves `frontend/dist`. In development
 Vite proxies `/api` and `/files` to `:8000`.
 
+## Demo mode & showcase scripts
+
+`run.py --demo` points `ADSPY_DATA_DIR` at `data-demo/` and sets `ADSPY_DEMO=1`. `core/demo.py`
+makes scan, rerun, watchlist-run, AI-run, landing-capture and clear-data endpoints return 403,
+the scheduler isn't started, and `/api/health` reports `demo: true` for the UI badge.
+`scripts/seed_demo.py` builds that folder through the real code paths (`compute_score`,
+`detect_changes`, `regroup_competitor`, the report builder). `scripts/benchmark.py` records real
+scans. `scripts/capture_screenshots.py` and `scripts/export_case_study.py` drive headless Chrome.
+
 ## Files served
 
 Only `data/media` and `data/reports` are mounted (`/files/media`, `/files/reports`). The database,

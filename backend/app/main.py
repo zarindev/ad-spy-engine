@@ -25,6 +25,7 @@ from app.api import (
     stats,
     watchlist,
 )
+from app.core.demo import is_demo
 from app.core.logging import setup_logging
 from app.core.paths import FRONTEND_DIST, media_dir, reports_dir
 from app.db.session import run_migrations
@@ -34,7 +35,7 @@ from app.jobs.worker import worker
 from app.scraper.cleanup import cleanup_orphans
 
 log = logging.getLogger(__name__)
-VERSION = "0.5.0"
+VERSION = "1.0.0"
 
 
 @asynccontextmanager
@@ -46,7 +47,8 @@ async def lifespan(_app: FastAPI):
     recovered = worker.recover()
     if any(recovered.values()):
         log.warning("Startup recovery: %s", recovered)
-    scheduler.start()
+    if not is_demo():
+        scheduler.start()
     log.info("Ad Spy Engine %s started", VERSION)
     yield
     scheduler.shutdown()
@@ -92,7 +94,12 @@ app.mount("/files/reports", StaticFiles(directory=reports_dir()), name="reports"
 
 @app.get("/api/health")
 def health() -> dict:
-    return {"ok": True, "version": VERSION, "frontend_built": (FRONTEND_DIST / "index.html").exists()}
+    return {
+        "ok": True,
+        "version": VERSION,
+        "demo": is_demo(),
+        "frontend_built": (FRONTEND_DIST / "index.html").exists(),
+    }
 
 
 @app.exception_handler(Exception)

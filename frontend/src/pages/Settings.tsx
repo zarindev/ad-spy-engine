@@ -1,11 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Bot, CheckCircle2, Circle, Folder, Gauge, ImageUp, Loader2, Palette, Save, ScanSearch, Send, Trash2 } from "lucide-react";
+import { AlertTriangle, Bot, CheckCircle2, Circle, Folder, Gauge, ImageUp, Loader2, Palette, Save, ScanSearch, Send, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ErrorState, PageHeader } from "@/components/States";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Input, Label } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Slider } from "@/components/ui/slider";
@@ -123,6 +124,52 @@ function BrandingCard({
           ))}
         </div>
       </CardContent>
+    </Card>
+  );
+}
+
+function DangerZone() {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [typed, setTyped] = useState("");
+  const clear = useMutation({
+    mutationFn: api.clearData,
+    onSuccess: (r) => {
+      toast.success("All data cleared", { description: `${r.deleted.ads} ads and ${r.deleted.scans} scans deleted. Settings were kept.` });
+      setOpen(false);
+      setTyped("");
+      qc.invalidateQueries();
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Couldn't clear data"),
+  });
+  return (
+    <Card className="border-destructive/40">
+      <CardHeader>
+        <div>
+          <CardTitle className="flex items-center gap-2 text-destructive"><AlertTriangle className="size-4" /> Danger zone</CardTitle>
+          <CardDescription>Delete every scan, ad, competitor, client, swipe file, report and downloaded file. Settings and your logo are kept.</CardDescription>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <Button variant="outline" className="border-destructive/50 text-destructive hover:bg-destructive/10" onClick={() => setOpen(true)}>
+          <Trash2 /> Clear all data
+        </Button>
+      </CardContent>
+      <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setTyped(""); }}>
+        <DialogContent className="max-w-sm">
+          <DialogTitle>Clear all data?</DialogTitle>
+          <DialogDescription>This can't be undone. Type <b>DELETE</b> to confirm.</DialogDescription>
+          <form className="mt-3 space-y-4" onSubmit={(e) => { e.preventDefault(); if (typed === "DELETE") clear.mutate(); }}>
+            <Input value={typed} onChange={(e) => setTyped(e.target.value)} placeholder="DELETE" aria-label="Type DELETE to confirm" autoFocus />
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
+              <Button type="submit" variant="destructive" disabled={typed !== "DELETE" || clear.isPending}>
+                {clear.isPending && <Loader2 className="animate-spin" />} Delete everything
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
@@ -287,6 +334,8 @@ export default function Settings() {
               </div>
             </CardContent>
           </Card>
+
+          <DangerZone />
         </div>
       </div>
     </>

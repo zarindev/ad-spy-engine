@@ -296,3 +296,19 @@ def test_logo_upload_and_branding_validation(api):
     assert api.put("/api/settings", json={"reports": {"primary_color": "red"}}).status_code == 422
     assert api.put("/api/settings", json={"reports": {"logo_path": "app.db"}}).status_code == 422
     assert api.delete("/api/settings/logo").json()["logo_url"] is None
+
+
+def test_clear_data_requires_confirmation(api):
+    assert api.post("/api/settings/clear-data", json={"confirm": "yes"}).status_code == 422
+
+
+def test_demo_mode_blocks_live_actions(api, monkeypatch):
+    monkeypatch.setenv("ADSPY_DEMO", "1")
+    assert api.get("/api/health").json()["demo"] is True
+    for path, body in [
+        ("/api/scans", {"query": "Nike"}),
+        ("/api/ai/runs", {"competitor_id": api.alpha}),
+        ("/api/settings/clear-data", {"confirm": "DELETE"}),
+    ]:
+        res = api.post(path, json=body)
+        assert res.status_code == 403 and "Demo mode" in res.json()["detail"]

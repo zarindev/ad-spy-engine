@@ -14,7 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 
 def main() -> None:
-    from app.core.config import env, get_settings
+    from app.core.config import env, get_settings, reload_settings
 
     server = get_settings().get("server", {})
     ap = argparse.ArgumentParser(description="Run Ad Spy Engine")
@@ -28,7 +28,12 @@ def main() -> None:
     args = ap.parse_args()
 
     if args.demo:
-        os.environ["ADSPY_DATA_DIR"] = str(Path(__file__).resolve().parents[1] / "data-demo")
+        demo_dir = Path(__file__).resolve().parents[1] / "data-demo"
+        if not (demo_dir / "app.db").exists():
+            sys.exit("No demo dataset yet. Create it with: python scripts/seed_demo.py")
+        os.environ["ADSPY_DATA_DIR"] = str(demo_dir)
+        os.environ["ADSPY_DEMO"] = "1"
+        reload_settings()  # settings were read above from the real data folder
 
     import uvicorn
 

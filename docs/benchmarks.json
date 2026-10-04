@@ -1,0 +1,72 @@
+{
+  "generated_at": "2026-10-04T07:39:29+00:00",
+  "note": "Real scans of the public Meta Ad Library recorded by scripts/benchmark.py. Speeds depend on network, machine and Meta's page; re-run to refresh.",
+  "environment": {
+    "os": "Darwin 25.5.0 (arm64)",
+    "python": "3.13.1",
+    "chrome": "Google Chrome 154.0.8037.93",
+    "headless": true
+  },
+  "summary": {
+    "scans": 2,
+    "scans_completed": 2,
+    "total_ads": 500,
+    "total_seconds": 174.2,
+    "ads_per_minute": 172.2,
+    "success_rate_pct": 100.0,
+    "manual_research_estimate": {
+      "assumption_seconds_per_ad": 45,
+      "assumption": "A person opening each ad in the Ad Library, reading it, noting dates and placements and saving a screenshot. Our estimate, not a measured study.",
+      "manual_minutes": 375.0,
+      "tool_minutes": 2.9
+    }
+  },
+  "scans": [
+    {
+      "brand": "Gymshark",
+      "scan_id": 31,
+      "status": "completed",
+      "country": "US",
+      "max_ads": 300,
+      "meta_reported_results": 753,
+      "ads_found": 300,
+      "ads_processed": 300,
+      "ads_failed": 0,
+      "duration_seconds": 83.4,
+      "ads_per_minute": 215.7,
+      "success_rate_pct": 100.0,
+      "field_coverage_pct": {
+        "library_id": 100.0,
+        "start_date": 100.0,
+        "platforms": 100.0,
+        "ad_copy_or_headline": 100.0,
+        "card_screenshot": 100.0,
+        "creative_downloaded": 100.0
+      },
+      "started_at": "2026-10-04T07:36:35.227582+00:00"
+    },
+    {
+      "brand": "Huel",
+      "scan_id": 32,
+      "status": "completed",
+      "country": "US",
+      "max_ads": 200,
+      "meta_reported_results": 625,
+      "ads_found": 200,
+      "ads_processed": 200,
+      "ads_failed": 0,
+      "duration_seconds": 90.8,
+      "ads_per_minute": 132.2,
+      "success_rate_pct": 100.0,
+      "field_coverage_pct": {
+        "library_id": 100.0,
+        "start_date": 100.0,
+        "platforms": 100.0,
+        "ad_copy_or_headline": 100.0,
+        "card_screenshot": 100.0,
+        "creative_downloaded": 100.0
+      },
+      "started_at": "2026-10-04T07:37:58.694396+00:00"
+    }
+  ]
+}

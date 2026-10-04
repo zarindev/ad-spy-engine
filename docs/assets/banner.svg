@@ -1,0 +1,203 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="400" viewBox="0 0 1280 400" role="img" aria-label="Ad Spy Engine: Turn any competitor's Meta ads into a winning-creative playbook.">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0B0B12"/>
+      <stop offset="1" stop-color="#120E22"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.22" cy="0.35" r="0.55">
+      <stop offset="0" stop-color="#6D28D9" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#6D28D9" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="0.92" cy="1" r="0.45">
+      <stop offset="0" stop-color="#F59E0B" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#F59E0B" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="fade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#0B0B12" stop-opacity="1"/>
+      <stop offset="0.55" stop-color="#0B0B12" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#0B0B12" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="lm" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8B5CF6"/>
+      <stop offset="1" stop-color="#6D28D9"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="400" rx="20" fill="url(#bg)"/>
+  <g><g transform="translate(700 28)" opacity="0.10">
+      <rect width="62" height="104" rx="8" fill="#1B1830" stroke="#3B2F6B"/>
+      <rect x="5" y="5" width="52" height="60" rx="5" fill="#241F3D"/>
+      <rect x="5" y="71" width="36" height="5" rx="2.5" fill="#4C437A"/>
+      <rect x="5" y="81" width="48" height="4" rx="2" fill="#332C55"/>
+      
+    </g><g transform="translate(774 46)" opacity="0.12">
+      <rect width="62" height="106" rx="8" fill="#1B1830" stroke="#3B2F6B"/>
+      <rect x="5" y="5" width="52" height="62" rx="5" fill="#241F3D"/>
+      <rect x="5" y="73" width="36" height="5" rx="2.5" fill="#4C437A"/>
+      <rect x="5" y="83" width="48" height="4" rx="2" fill="#332C55"/>
+      
+    </g><g transform="translate(848 28)" opacity="0.14">
+      <rect width="62" height="96" rx="8" fill="#1B1830" stroke="#3B2F6B"/>
+      <rect x="5" y="5" width="52" height="52" rx="5" fill="#241F3D"/>
+      <rect x="5" y="63" width="36" height="5" rx="2.5" fill="#4C437A"/>
+      <rect x="5" y="73" width="48" height="4" rx="2" fill="#332C55"/>
+      
+    </g><g transform="translate(922 46)" opacity="0.15">
+      <rect width="62" height="97" rx="8" fill="#1B1830" stroke="#3B2F6B"/>
+      <rect x="5" y="5" width="52" height="53" rx="5" fill="#241F3D"/>
+      <rect x="5" y="64" width="36" height="5" rx="2.5" fill="#4C437A"/>
+      <rect x="5" y="74" width="48" height="4" rx="2" fill="#332C55"/>
+      
+    </g><g transform="translate(996 28)" opacity="0.17">
+      <rect width="62" height="95" rx="8" fill="#1B1830" stroke="#3B2F6B"/>
+      <rect x="5" y="5" width="52" height="51" rx="5" fill="#241F3D"/>
+      <rect x="5" y="62" width="36" height="5" rx="2.5" fill="#4C437A"/>
+      <rect x="5" y="72" width="48" height="4" rx="2" fill="#332C55"/>
+      
+    </g><g transform="translate(1070 46)" opacity="0.19">
+      <rect width="62" height="100" rx="8" fill="#1B1830" stroke="#3B2F6B"/>
+      <rect x="5" y="5" width="52" height="56" rx="5" fill="#3A2A12"/>
+      <rect x="5" y="67" width="36" height="5" rx="2.5" fill="#4C437A"/>
+      <rect x="5" y="77" width="48" height="4" rx="2" fill="#332C55"/>
+      <circle cx="51" cy="13" r="5" fill="#F59E0B"/>
+    </g><g transform="translate(1144 28)" opacity="0.21">
+      <rect width="62" height="107" rx="8" fill="#1B1830" stroke="#3B2F6B"/>
+      <rect x="5" y="5" width="52" height="63" rx="5" fill="#241F3D"/>
+      <rect x="5" y="74" width="36" height="5" rx="2.5" fill="#4C437A"/>
+      <rect x="5" y="84" width="48" height="4" rx="2" fill="#332C55"/>
+      
+    </g><g transform="translate(1218 46)" opacity="0.22">
+      <rect width="62" height="101" rx="8" fill="#1B1830" stroke="#3B2F6B"/>
+      <rect x="5" y="5" width="52" height="57" rx="5" fill="#3A2A12"/>
+      <rect x="5" y="68" width="36" height="5" rx="2.5" fill="#4C437A"/>
+      <rect x="5" y="78" width="48" height="4" rx="2" fill="#332C55"/>
+      <circle cx="51" cy="13" r="5" fill="#F59E0B"/>
+    </g><g transform="translate(1292 28)" opacity="0.24">
+      <rect width="62" height="107" rx="8" fill="#1B1830" stroke="#3B2F6B"/>
+      <rect x="5" y="5" width="52" height="63" rx="5" fill="#3A2A12"/>
+      <rect x="5" y="74" width="36" height="5" rx="2.5" fill="#4C437A"/>
+      <rect x="5" y="84" width="48" height="4" rx="2" fill="#332C55"/>
+      <circle cx="51" cy="13" r="5" fill="#F59E0B"/>
+    </g><g transform="translate(674 150)" opacity="0.10">
+      <rect width="62" height="112" rx="8" fill="#1B1830" stroke="#3B2F6B"/>
+      <rect x="5" y="5" width="52" height="68" rx="5" fill="#3A2A12"/>
+      <rect x="5" y="79" width="36" height="5" rx="2.5" fill="#4C437A"/>
+      <rect x="5" y="89" width="48" height="4" rx="2" fill="#332C55"/>
+      <circle cx="51" cy="13" r="5" fill="#F59E0B"/>
+    </g><g transform="translate(748 168)" opacity="0.12">
+      <rect width="62" height="101" rx="8" fill="#1B1830" stroke="#3B2F6B"/>
+      <rect x="5" y="5" width="52" height="57" rx="5" fill="#241F3D"/>
+      <rect x="5" y="68" width="36" height="5" rx="2.5" fill="#4C437A"/>
+      <rect x="5" y="78" width="48" height="4" rx="2" fill="#332C55"/>
+      
+    </g><g transform="translate(822 150)" opacity="0.14">
+      <rect width="62" height="112" rx="8" fill="#1B1830" stroke="#3B2F6B"/>
+      <rect x="5" y="5" width="52" height="68" rx="5" fill="#241F3D"/>
+      <rect x="5" y="79" width="36" height="5" rx="2.5" fill="#4C437A"/>
+      <rect x="5" y="89" width="48" height="4" rx="2" fill="#332C55"/>
+      
+    </g><g transform="translate(896 168)" opacity="0.15">
+      <rect width="62" height="112" rx="8" fill="#1B1830" stroke="#3B2F6B"/>
+      <rect x="5" y="5" width="52" height="68" rx="5" fill="#241F3D"/>
+      <rect x="5" y="79" width="36" height="5" rx="2.5" fill="#4C437A"/>
+      <rect x="5" y="89" width="48" height="4" rx="2" fill="#332C55"/>
+      
+    </g><g transform="translate(970 150)" opacity="0.17">
+      <rect width="62" height="95" rx="8" fill="#1B1830" stroke="#3B2F6B"/>
+      <rect x="5" y="5" width="52" height="51" rx="5" fill="#241F3D"/>
+      <rect x="5" y="62" width="36" height="5" rx="2.5" fill="#4C437A"/>
+      <rect x="5" y="72" width="48" height="4" rx="2" fill="#332C55"/>
+      
+    </g><g transform="translate(1044 168)" opacity="0.19">
+      <rect width="62" height="95" rx="8" fill="#1B1830" stroke="#3B2F6B"/>
+      <rect x="5" y="5" width="52" height="51" rx="5" fill="#241F3D"/>
+      <rect x="5" y="62" width="36" height="5" rx="2.5" fill="#4C437A"/>
+      <rect x="5" y="72" width="48" height="4" rx="2" fill="#332C55"/>
+      
+    </g><g transform="translate(1118 150)" opacity="0.21">
+      <rect width="62" height="98" rx="8" fill="#1B1830" stroke="#3B2F6B"/>
+      <rect x="5" y="5" width="52" height="54" rx="5" fill="#241F3D"/>
+      <rect x="5" y="65" width="36" height="5" rx="2.5" fill="#4C437A"/>
+      <rect x="5" y="75" width="48" height="4" rx="2" fill="#332C55"/>
+      
+    </g><g transform="translate(1192 168)" opacity="0.22">
+      <rect width="62" height="98" rx="8" fill="#1B1830" stroke="#3B2F6B"/>
+      <rect x="5" y="5" width="52" height="54" rx="5" fill="#241F3D"/>
+      <rect x="5" y="65" width="36" height="5" rx="2.5" fill="#4C437A"/>
+      <rect x="5" y="75" width="48" height="4" rx="2" fill="#332C55"/>
+      
+    </g><g transform="translate(1266 150)" opacity="0.24">
+      <rect width="62" height="112" rx="8" fill="#1B1830" stroke="#3B2F6B"/>
+      <rect x="5" y="5" width="52" height="68" rx="5" fill="#241F3D"/>
+      <rect x="5" y="79" width="36" height="5" rx="2.5" fill="#4C437A"/>
+      <rect x="5" y="89" width="48" height="4" rx="2" fill="#332C55"/>
+      
+    </g><g transform="translate(648 272)" opacity="0.10">
+      <rect width="62" height="99" rx="8" fill="#1B1830" stroke="#3B2F6B"/>
+      <rect x="5" y="5" width="52" height="55" rx="5" fill="#3A2A12"/>
+      <rect x="5" y="66" width="36" height="5" rx="2.5" fill="#4C437A"/>
+      <rect x="5" y="76" width="48" height="4" rx="2" fill="#332C55"/>
+      <circle cx="51" cy="13" r="5" fill="#F59E0B"/>
+    </g><g transform="translate(722 290)" opacity="0.12">
+      <rect width="62" height="112" rx="8" fill="#1B1830" stroke="#3B2F6B"/>
+      <rect x="5" y="5" width="52" height="68" rx="5" fill="#241F3D"/>
+      <rect x="5" y="79" width="36" height="5" rx="2.5" fill="#4C437A"/>
+      <rect x="5" y="89" width="48" height="4" rx="2" fill="#332C55"/>
+      
+    </g><g transform="translate(796 272)" opacity="0.14">
+      <rect width="62" height="105" rx="8" fill="#1B1830" stroke="#3B2F6B"/>
+      <rect x="5" y="5" width="52" height="61" rx="5" fill="#3A2A12"/>
+      <rect x="5" y="72" width="36" height="5" rx="2.5" fill="#4C437A"/>
+      <rect x="5" y="82" width="48" height="4" rx="2" fill="#332C55"/>
+      <circle cx="51" cy="13" r="5" fill="#F59E0B"/>
+    </g><g transform="translate(870 290)" opacity="0.15">
+      <rect width="62" height="96" rx="8" fill="#1B1830" stroke="#3B2F6B"/>
+      <rect x="5" y="5" width="52" height="52" rx="5" fill="#241F3D"/>
+      <rect x="5" y="63" width="36" height="5" rx="2.5" fill="#4C437A"/>
+      <rect x="5" y="73" width="48" height="4" rx="2" fill="#332C55"/>
+      
+    </g><g transform="translate(944 272)" opacity="0.17">
+      <rect width="62" height="113" rx="8" fill="#1B1830" stroke="#3B2F6B"/>
+      <rect x="5" y="5" width="52" height="69" rx="5" fill="#241F3D"/>
+      <rect x="5" y="80" width="36" height="5" rx="2.5" fill="#4C437A"/>
+      <rect x="5" y="90" width="48" height="4" rx="2" fill="#332C55"/>
+      
+    </g><g transform="translate(1018 290)" opacity="0.19">
+      <rect width="62" height="111" rx="8" fill="#1B1830" stroke="#3B2F6B"/>
+      <rect x="5" y="5" width="52" height="67" rx="5" fill="#241F3D"/>
+      <rect x="5" y="78" width="36" height="5" rx="2.5" fill="#4C437A"/>
+      <rect x="5" y="88" width="48" height="4" rx="2" fill="#332C55"/>
+      
+    </g><g transform="translate(1092 272)" opacity="0.21">
+      <rect width="62" height="104" rx="8" fill="#1B1830" stroke="#3B2F6B"/>
+      <rect x="5" y="5" width="52" height="60" rx="5" fill="#241F3D"/>
+      <rect x="5" y="71" width="36" height="5" rx="2.5" fill="#4C437A"/>
+      <rect x="5" y="81" width="48" height="4" rx="2" fill="#332C55"/>
+      
+    </g><g transform="translate(1166 290)" opacity="0.22">
+      <rect width="62" height="108" rx="8" fill="#1B1830" stroke="#3B2F6B"/>
+      <rect x="5" y="5" width="52" height="64" rx="5" fill="#241F3D"/>
+      <rect x="5" y="75" width="36" height="5" rx="2.5" fill="#4C437A"/>
+      <rect x="5" y="85" width="48" height="4" rx="2" fill="#332C55"/>
+      
+    </g><g transform="translate(1240 272)" opacity="0.24">
+      <rect width="62" height="101" rx="8" fill="#1B1830" stroke="#3B2F6B"/>
+      <rect x="5" y="5" width="52" height="57" rx="5" fill="#241F3D"/>
+      <rect x="5" y="68" width="36" height="5" rx="2.5" fill="#4C437A"/>
+      <rect x="5" y="78" width="48" height="4" rx="2" fill="#332C55"/>
+      
+    </g></g>
+  <rect width="1280" height="400" rx="20" fill="url(#fade)" opacity="0.55"/>
+  <rect width="1280" height="400" rx="20" fill="url(#glow)"/>
+  <rect width="1280" height="400" rx="20" fill="url(#glow2)"/>
+  <g transform="translate(88 118)">
+    <rect width="72" height="72" rx="18" fill="url(#lm)"/>
+    <circle cx="31.5" cy="31.5" r="14.6" fill="none" stroke="#fff" stroke-width="5.6"/>
+    <path d="M42.7 42.7l11.3 11.3" stroke="#fff" stroke-width="6.8" stroke-linecap="round"/>
+    <circle cx="31.5" cy="31.5" r="5" fill="#F59E0B"/>
+  </g>
+  <text x="88" y="250" fill="#FFFFFF" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="62" font-weight="800" letter-spacing="-1.5">Ad Spy Engine</text>
+  <text x="90" y="296" fill="#C4B5FD" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="24" font-weight="500">Turn any competitor's Meta ads into a winning-creative playbook.</text>
+  <g transform="translate(90 326)" font-family="'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace" font-size="14" fill="#9A9AB5">
+    <text>Selenium · FastAPI · React · Winner Score · AI insights · Branded reports</text>
+  </g>
+</svg>

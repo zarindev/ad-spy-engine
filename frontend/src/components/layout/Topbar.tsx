@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, Menu, Moon, Search, Sun } from "lucide-react";
+import { FlaskConical, Loader2, Menu, Moon, Search, Sun } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -42,6 +42,19 @@ function ScanStatusPill() {
   );
 }
 
+function DemoPill() {
+  const { data } = useQuery({ queryKey: ["health"], queryFn: api.health, staleTime: Infinity });
+  if (!data?.demo) return null;
+  return (
+    <span
+      className="flex h-8 items-center gap-1.5 rounded-full border border-gold/40 bg-gold/10 px-3 text-xs font-medium text-gold"
+      title="Fictional brands and generated creatives (scripts/seed_demo.py). Live scans are off."
+    >
+      <FlaskConical className="size-3.5" /> Demo data
+    </span>
+  );
+}
+
 export function Topbar({
   onSearch, onMenu, theme, onToggleTheme,
 }: { onSearch: () => void; onMenu: () => void; theme: string; onToggleTheme: () => void }) {
@@ -61,6 +74,7 @@ export function Topbar({
         <kbd className="num hidden rounded sm:inline border border-border bg-muted px-1.5 text-[10px]">{mac ? "⌘" : "Ctrl"} K</kbd>
       </button>
       <div className="ml-auto flex shrink-0 items-center gap-2">
+        <DemoPill />
         <span className="hidden sm:block"><ScanStatusPill /></span>
         <Button variant="ghost" size="icon" onClick={onToggleTheme} aria-label="Toggle theme">
           {theme === "dark" ? <Sun /> : <Moon />}

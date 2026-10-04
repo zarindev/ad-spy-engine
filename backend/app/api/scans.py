@@ -11,6 +11,7 @@ from sqlmodel import func, select
 
 from app.api.serializers import library_url, scan_out
 from app.core.config import get_settings
+from app.core.demo import require_live
 from app.core.paths import slugify
 from app.db.models import Ad, AdSnapshot, Competitor, Scan, ScanStatus
 from app.db.session import session_scope
@@ -36,6 +37,7 @@ class ScanCreate(BaseModel):
 
 @router.post("", status_code=201)
 def start_scan(body: ScanCreate) -> dict:
+    require_live()
     if body.search_type == "page_id" and not body.query.strip().isdigit():
         raise HTTPException(422, "A Page ID must contain digits only.")
     headless = body.headless
@@ -134,6 +136,7 @@ def cancel_scan(scan_id: int) -> dict:
 
 @router.post("/{scan_id}/rerun", status_code=201)
 def rerun_scan(scan_id: int) -> dict:
+    require_live()
     old, comp = _get(scan_id)
     body = ScanCreate(
         query=old.query,

@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 from sqlmodel import select
 
 from app.api.serializers import asset_url
+from app.core.demo import require_live
 from app.db.models import Competitor, Scan, WatchlistItem
 from app.db.session import session_scope
 from app.jobs.scheduler import scheduler
@@ -158,6 +159,7 @@ def delete_item(item_id: int) -> dict:
 
 @router.post("/{item_id}/run")
 def run_now(item_id: int) -> dict:
+    require_live()
     scan_id = scheduler.run_item(item_id)
     if scan_id is None:
         raise HTTPException(409, "A scan for this competitor is already queued or running")

@@ -8,6 +8,7 @@ from sqlmodel import select
 
 from app.analysis import ai
 from app.core.config import ai_model
+from app.core.demo import require_live
 from app.db.models import AiRun
 from app.db.session import session_scope
 from app.jobs.ai_worker import ai_worker, resolve_scope
@@ -56,6 +57,7 @@ def estimate(scope: Scope) -> dict:
 
 @router.post("/runs", status_code=201)
 def start_run(scope: Scope) -> dict:
+    require_live()
     try:
         run = ai_worker.start(scope.model_dump())
     except ai.AIDisabled as exc:
