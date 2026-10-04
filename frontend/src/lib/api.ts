@@ -186,6 +186,66 @@ export interface Scan {
   finished_at: string | null;
   duration_seconds: number | null;
   ads_per_minute: number | null;
+  trigger: "manual" | "schedule";
+  change_summary: ChangeSummary;
+}
+
+export interface ChangeSummary {
+  baseline?: boolean;
+  ads?: number;
+  compared_to?: number;
+  new?: number;
+  discovered?: number;
+  stopped?: number;
+  scaled?: number;
+  still_running?: number;
+  stopped_check?: string;
+}
+
+export type ChangeKind = "new" | "stopped" | "scaled";
+
+export interface ChangeItem {
+  id: number;
+  kind: ChangeKind;
+  details: { from?: number; to?: number; days_running?: number; last_seen?: string };
+  scan_id: number;
+  created_at: string;
+  competitor_id: number;
+  competitor_name: string;
+  competitor_logo: string | null;
+  ad: Ad;
+}
+
+export interface WatchItem {
+  id: number;
+  competitor_id: number;
+  competitor_name: string | null;
+  competitor_logo: string | null;
+  query: string;
+  search_type: string;
+  country: string;
+  media_type: string;
+  max_ads: number;
+  exact_page: boolean;
+  frequency: "daily" | "weekly";
+  hour: number;
+  minute: number;
+  weekday: number;
+  enabled: boolean;
+  notify: boolean;
+  next_run_at: string | null;
+  last_run_at: string | null;
+  last_scan: { id: number; status: ScanStatus; ads_found: number; change_summary: ChangeSummary } | null;
+}
+
+export interface WatchSchedule {
+  frequency: "daily" | "weekly";
+  hour: number;
+  minute: number;
+  weekday: number;
+  notify: boolean;
+  enabled?: boolean;
+  max_ads?: number;
 }
 
 export interface Competitor {
@@ -331,6 +391,15 @@ export const api = {
   aiEstimate: (scope: AiScope) => request<AiEstimate>("/api/ai/estimate", { method: "POST", body: JSON.stringify(scope) }),
   aiStart: (scope: AiScope) => request<AiRun>("/api/ai/runs", { method: "POST", body: JSON.stringify(scope) }),
   aiRun: (id: number) => request<AiRun>(`/api/ai/runs/${id}`),
+  watchlist: () => request<WatchItem[]>("/api/watchlist"),
+  watchAdd: (body: WatchSchedule & { competitor_id: number }) => request<WatchItem>("/api/watchlist", { method: "POST", body: JSON.stringify(body) }),
+  watchUpdate: (id: number, body: Partial<WatchSchedule>) => request<WatchItem>(`/api/watchlist/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
+  watchDelete: (id: number) => request<{ ok: boolean }>(`/api/watchlist/${id}`, { method: "DELETE" }),
+  watchRun: (id: number) => request<WatchItem & { scan_id: number }>(`/api/watchlist/${id}/run`, { method: "POST" }),
+  changes: (p: { competitor_id?: number; scan_id?: number; kind?: ChangeKind | ""; limit?: number; offset?: number } = {}) =>
+    request<Paged<ChangeItem>>(`/api/changes${qs(p)}`),
+  changeSummary: (days = 30) => request<{ days: number; new: number; stopped: number; scaled: number }>(`/api/changes/summary?days=${days}`),
+  notifyTest: (channel: "telegram" | "email") => request<{ ok: boolean; channel: string }>("/api/settings/notify/test", { method: "POST", body: JSON.stringify({ channel }) }),
   reports: () => request<Report[]>("/api/reports"),
   createReport: (body: { scan_id: number; title?: string; sections: string[]; top_n: number; pdf: boolean }) =>
     request<Report>("/api/reports", { method: "POST", body: JSON.stringify(body) }),

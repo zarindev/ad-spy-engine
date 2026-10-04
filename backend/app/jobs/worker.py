@@ -90,6 +90,7 @@ class ScanWorker:
 
         try:
             scan = run_scan(scan_id, on_event=on_event, cancel=cancel)
+            self._maybe_alert(scan)
             if self.shutting_down and scan.status == ScanStatus.CANCELLED:
                 with session_scope() as session:
                     row = session.get(Scan, scan_id)
@@ -112,6 +113,31 @@ class ScanWorker:
             logging.getLogger().removeHandler(handler)
             self.current = None
             self.cancels.pop(scan_id, None)
+
+    def _maybe_alert(self, scan: Scan) -> None:
+        """Scheduled scans alert on changes (or on a block/failure) when the item has notify on."""
+        if scan.trigger != "schedule":
+            return
+        from app.analysis.changes import has_changes
+        from app.db.models import WatchlistItem
+        from app.notify import channels, send_alert
+
+        try:
+            with session_scope() as session:
+                item = session.exec(
+                    select(WatchlistItem).where(WatchlistItem.competitor_id == scan.competitor_id)
+                ).first()
+                if item is None or not item.notify or not any(channels().values()):
+                    return
+                fresh = session.get(Scan, scan.id)
+                if fresh is None:
+                    return
+                if fresh.status in (ScanStatus.BLOCKED, ScanStatus.FAILED) or has_changes(
+                    fresh.change_summary or {}
+                ):
+                    send_alert(session, fresh)
+        except Exception:  # noqa: BLE001
+            log.exception("Sending alert for scan %s failed", scan.id)
 
     def recover(self) -> dict[str, int]:
         """Called on startup."""

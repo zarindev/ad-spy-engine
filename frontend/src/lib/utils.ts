@@ -69,3 +69,22 @@ export async function copyText(text: string): Promise<boolean> {
     return false;
   }
 }
+
+export function timeUntil(iso: string | null | undefined): string {
+  const d = parseDate(iso);
+  if (!d) return "—";
+  const s = Math.round((d.getTime() - Date.now()) / 1000);
+  if (s <= 60) return "any moment";
+  const m = Math.round(s / 60);
+  if (m < 60) return `in ${m}m`;
+  const h = Math.round(m / 60);
+  if (h < 48) return `in ${h}h`;
+  return `in ${Math.round(h / 24)}d`;
+}
+
+export const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+export function scheduleLabel(s: { frequency: string; hour: number; minute: number; weekday: number }): string {
+  const t = `${String(s.hour).padStart(2, "0")}:${String(s.minute).padStart(2, "0")}`;
+  return s.frequency === "weekly" ? `Weekly · ${WEEKDAYS[s.weekday]} ${t}` : `Daily · ${t}`;
+}

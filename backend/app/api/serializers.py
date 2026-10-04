@@ -102,6 +102,8 @@ def scan_out(scan: Scan, competitor: Competitor | None = None) -> dict[str, Any]
         "finished_at": scan.finished_at.isoformat() if scan.finished_at else None,
         "duration_seconds": duration,
         "ads_per_minute": round(scan.ads_found / duration * 60, 1) if duration else None,
+        "trigger": scan.trigger,
+        "change_summary": scan.change_summary or {},
     }
 
 

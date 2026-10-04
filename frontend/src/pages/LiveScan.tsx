@@ -259,7 +259,7 @@ export default function LiveScan() {
             </div>
             <div className="mt-5 grid w-full grid-cols-2 gap-2">
               <Counter label="Found" value={found} />
-              <Counter label="New" value={live ? "…" : scan.new_ads} tone="text-success" />
+              <Counter label="First seen" value={live ? "…" : scan.new_ads} tone="text-success" />
               <Counter label="Failed" value={failed} tone={failed ? "text-destructive" : undefined} />
               <Counter label="Elapsed" value={formatDuration(elapsed)} />
             </div>
@@ -275,6 +275,28 @@ export default function LiveScan() {
             </div>
           </Card>
           <OutcomeBanner scan={scan} blocked={ev.blocked} />
+          {!live && scan.change_summary && Object.keys(scan.change_summary).length > 0 && (
+            <Card className="p-5">
+              <div className="mb-3 text-sm font-semibold">Changes since last scan</div>
+              {scan.change_summary.baseline ? (
+                <p className="text-sm text-muted-foreground">First scan of this competitor — this is the baseline future scans are compared against.</p>
+              ) : (
+                <>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Counter label="New" value={scan.change_summary.new ?? 0} tone="text-success" />
+                    <Counter label="Stopped" value={scan.change_summary.stopped ?? 0} />
+                    <Counter label="Scaled" value={scan.change_summary.scaled ?? 0} tone="text-gold" />
+                    <Counter label="Still running" value={scan.change_summary.still_running ?? 0} />
+                  </div>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Compared with scan #{scan.change_summary.compared_to}.{" "}
+                    {!!scan.change_summary.discovered && `${scan.change_summary.discovered} older ads were seen for the first time (the previous scan stopped at its limit). `}
+                    {scan.change_summary.stopped_check !== "ok" && `Stopped ads not inferred (${scan.change_summary.stopped_check?.replace("skipped: ", "")}).`}
+                  </p>
+                </>
+              )}
+            </Card>
+          )}
         </div>
 
         <div className="min-w-0 space-y-5">

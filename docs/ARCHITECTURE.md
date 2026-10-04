@@ -78,6 +78,19 @@ the JSON degrades the data but doesn't break scans.
    batch is validated with Pydantic and stored in `adanalysis`, keyed by Library ID, so an ad is
    never paid for twice. A failing batch is counted and skipped; the run continues.
 
+## Monitoring
+
+- `jobs/scheduler.py`: an APScheduler `BackgroundScheduler` in the local time zone, with one cron
+  job per enabled `WatchlistItem` (re-synced whenever the watchlist changes). A run creates a
+  normal scan with `trigger="schedule"` and enqueues it on the same scan worker, so rate limits
+  and one-at-a-time still apply. On startup, items whose `next_run_at` passed while the app was
+  closed are run once.
+- `analysis/changes.py` runs after every completed scan. It compares `AdSnapshot` sets with the
+  previous comparable scan, writes `ChangeEvent` rows (`new`, `stopped`, `scaled`), and stores a
+  summary on the scan.
+- `notify/`: after a scheduled scan finishes with changes (or is blocked or fails), the worker
+  sends one alert to each configured channel. A failing channel never blocks the other.
+
 ## Data model
 
 - `competitor`: one tracked brand (name, optional Page ID, local logo).
@@ -87,6 +100,7 @@ the JSON degrades the data but doesn't break scans.
 - `adsnapshot`: one row per ad per scan. This is the basis for change detection (Phase 4).
 - `report`: generated reports (HTML + PDF paths, options).
 - `landingpage`: one screenshot per normalized destination URL.
+- `watchlistitem` / `changeevent`: schedules and detected changes between scans.
 - `adanalysis` / `airun`: cached AI results per Library ID, and per-run token/cost accounting.
 
 Schema changes go through Alembic (`backend/app/db/migrations`). Migrations run automatically at startup.

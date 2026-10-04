@@ -146,3 +146,31 @@ def test_ai_endpoints_without_key(client, monkeypatch):
     est = client.post("/api/ai/estimate", json={"scan_id": client.scan_id}).json()
     assert est["to_analyze"] >= 1 and est["cost_usd"] > 0
     assert client.post("/api/ai/runs", json={"scan_id": client.scan_id}).status_code == 400
+
+
+def test_watchlist_crud_and_changes(client, monkeypatch):
+    from app.jobs.worker import worker
+
+    queued: list[int] = []
+    monkeypatch.setattr(worker, "enqueue", queued.append)
+    comp_id = client.get(f"/api/scans/{client.scan_id}").json()["competitor_id"]
+    res = client.post(
+        "/api/watchlist", json={"competitor_id": comp_id, "frequency": "weekly", "weekday": 2, "hour": 7}
+    )
+    assert res.status_code == 201, res.text
+    item = res.json()
+    assert item["next_run_at"] and item["query"] == "API Brand" and item["frequency"] == "weekly"
+    assert client.post("/api/watchlist", json={"competitor_id": comp_id}).status_code == 409
+    patched = client.patch(f"/api/watchlist/{item['id']}", json={"enabled": False}).json()
+    assert patched["enabled"] is False and patched["next_run_at"] is None
+    run = client.post(f"/api/watchlist/{item['id']}/run")
+    assert run.status_code == 200 and queued == [run.json()["scan_id"]]
+    assert client.get("/api/changes?limit=5").status_code == 200
+    assert set(client.get("/api/changes/summary").json()) >= {"new", "stopped", "scaled"}
+    assert client.delete(f"/api/watchlist/{item['id']}").json()["ok"] is True
+
+
+def test_notify_test_unconfigured(client, monkeypatch):
+    monkeypatch.delenv("TELEGRAM_BOT_TOKEN", raising=False)
+    res = client.post("/api/settings/notify/test", json={"channel": "telegram"})
+    assert res.status_code == 400 and "not configured" in res.json()["detail"]

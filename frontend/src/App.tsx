@@ -11,6 +11,7 @@ const Results = lazy(() => import("@/pages/Results"));
 const Reports = lazy(() => import("@/pages/Reports"));
 const Settings = lazy(() => import("@/pages/Settings"));
 const Competitors = lazy(() => import("@/pages/Competitors"));
+const Watchlist = lazy(() => import("@/pages/Watchlist"));
 const CompetitorProfile = lazy(() => import("@/pages/CompetitorProfile"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
@@ -36,6 +37,7 @@ export default function App() {
             ["/ads", Results],
             ["/competitors", Competitors],
             ["/competitors/:id", CompetitorProfile],
+            ["/watchlist", Watchlist],
             ["/reports", Reports],
             ["/settings", Settings],
             ["*", NotFound],

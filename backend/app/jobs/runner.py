@@ -17,6 +17,7 @@ from typing import Any
 import httpx
 from sqlmodel import Session, select
 
+from app.analysis.changes import detect_changes
 from app.analysis.grouping import regroup_competitor
 from app.analysis.scoring import compute_score
 from app.core.config import get_settings
@@ -300,6 +301,14 @@ def run_scan(
             new_ads=counters["new"],
             finished_at=utcnow(),
         )
+        if status == ScanStatus.COMPLETED and stats.found:
+            try:
+                with session_scope() as session:
+                    detect_changes(session, scan_id)
+                    session.commit()
+                scan = _update_scan(scan_id)
+            except Exception:  # noqa: BLE001
+                log.exception("Change detection failed")
         log.info("Scan %s finished with status %s", scan_id, status)
         emit("status", {"status": status, "scan": scan_summary(scan)})
         return scan
@@ -482,4 +491,6 @@ def scan_summary(scan: Scan) -> dict[str, Any]:
         "duration_seconds": scan.duration_seconds,
         "block_reason": scan.block_reason,
         "error": scan.error,
+        "change_summary": scan.change_summary or {},
+        "trigger": scan.trigger,
     }

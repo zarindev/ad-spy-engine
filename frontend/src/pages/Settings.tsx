@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Bot, CheckCircle2, Circle, Folder, Gauge, Loader2, Palette, Save, ScanSearch } from "lucide-react";
+import { Bot, CheckCircle2, Circle, Folder, Gauge, Loader2, Palette, Save, ScanSearch, Send } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ErrorState, PageHeader } from "@/components/States";
@@ -46,6 +46,11 @@ export default function Settings() {
     if (q.data && !draft) setDraft(structuredClone(q.data.settings));
   }, [q.data, draft]);
 
+  const test = useMutation({
+    mutationFn: (channel: "telegram" | "email") => api.notifyTest(channel),
+    onSuccess: (r) => toast.success(`Test ${r.channel === "telegram" ? "Telegram message" : "email"} sent`),
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Test failed"),
+  });
   const save = useMutation({
     mutationFn: (patch: Record<string, Record<string, unknown>>) => api.updateSettings(patch),
     onSuccess: (res) => {
@@ -177,21 +182,30 @@ export default function Settings() {
             <CardHeader>
               <div>
                 <CardTitle className="flex items-center gap-2"><Bot className="size-4 text-primary" /> Integrations</CardTitle>
-                <CardDescription>Configured through the .env file (secrets never leave your machine).</CardDescription>
+                <CardDescription>Configured in the .env file (secrets stay on your machine). Restart after editing.</CardDescription>
               </div>
             </CardHeader>
             <CardContent className="space-y-2">
-              {[
-                ["AI copy analysis", integ.ai.configured, integ.ai.configured ? `Model: ${integ.ai.model}` : "Set ANTHROPIC_API_KEY"],
-                ["Telegram alerts", integ.telegram.configured, "TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID"],
-                ["Email alerts", integ.email.configured, "SMTP_HOST, SMTP_TO, …"],
-              ].map(([label, ok, hint]) => (
-                <div key={label as string} className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2.5">
-                  <div>
+              {(
+                [
+                  ["AI copy analysis", integ.ai.configured, integ.ai.configured ? `Model: ${integ.ai.model}` : "Set ANTHROPIC_API_KEY", null],
+                  ["Telegram alerts", integ.telegram.configured, "TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID", "telegram"],
+                  ["Email alerts", integ.email.configured, "SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, SMTP_TO", "email"],
+                ] as const
+              ).map(([label, ok, hint, channel]) => (
+                <div key={label} className="flex items-center justify-between gap-3 rounded-lg bg-muted/50 px-3 py-2.5">
+                  <div className="min-w-0">
                     <div className="text-sm font-medium">{label}</div>
-                    <div className="text-xs text-muted-foreground">{hint}</div>
+                    <div className="truncate text-xs text-muted-foreground">{hint}</div>
                   </div>
-                  {ok ? <Badge variant="success"><CheckCircle2 /> Connected</Badge> : <Badge variant="muted"><Circle /> Not configured</Badge>}
+                  <div className="flex shrink-0 items-center gap-2">
+                    {ok ? <Badge variant="success"><CheckCircle2 /> Connected</Badge> : <Badge variant="muted"><Circle /> Not configured</Badge>}
+                    {channel && (
+                      <Button variant="outline" size="sm" disabled={!ok || test.isPending} onClick={() => test.mutate(channel)}>
+                        {test.isPending && test.variables === channel ? <Loader2 className="animate-spin" /> : <Send />} Send test
+                      </Button>
+                    )}
+                  </div>
                 </div>
               ))}
               <div className="flex items-center gap-2 pt-2 text-xs text-muted-foreground">

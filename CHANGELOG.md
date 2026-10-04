@@ -4,6 +4,21 @@ All notable changes to Ad Spy Engine are documented here. Format: [Keep a Change
 
 ## [Unreleased]
 
+### Phase 4 — Monitoring
+- Watchlist: daily or weekly re-scans per competitor at a local time, run by APScheduler while the
+  app is open. Runs missed while the app was closed catch up once on start. "Run now",
+  pause/resume and per-item alert toggles.
+- Change detection after every completed scan, against the previous comparable scan: new,
+  stopped, scaled (variation count up) and still running. Stopped ads are only inferred when the
+  scan wasn't cut off by its limit and the settings match. Older ads first seen because the
+  previous scan hit its limit are reported as "discovered", not new. Stopped ads are marked
+  inactive and re-scored.
+- Change feed (Watchlist, Competitor profile, Dashboard) with new/stopped/scaled filters;
+  "Changes since last scan" on each scan.
+- Alerts for scheduled scans via Telegram Bot API and/or SMTP email: summary + top changed ads,
+  and also when a scan is blocked or fails. "Send test" buttons in Settings.
+- Migration 0004 (`watchlistitem`, `changeevent`, `scan.trigger`, `scan.change_summary`).
+
 ### Phase 3 — Intelligence
 - Variation grouping: perceptual hashing (pHash, banded LSH) plus normalized/near-identical copy
   matching groups each competitor's ads into "N creatives · M copy tests". Runs automatically

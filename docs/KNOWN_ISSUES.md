@@ -31,6 +31,14 @@ how the app degrades. Last verified against the live site: **2026-10-04** (count
 | Variation grouping | Heuristic. Copy matching can chain groups together (A≈B, B≈C), so resellers posting one caption over many images form one large group. | Thresholds live in `analysis/grouping.py` (`PHASH_DISTANCE`, `COPY_SIMILARITY`). Video ads are grouped by their preview frame. |
 | Landing pages | Viewport screenshot (1366×900) after dismissing common cookie banners. Sites with bot protection may show a challenge page. | Failures are stored with the error and can be retried from Ad Detail. Pages are reused for 7 days. |
 
+## Monitoring
+
+| Area | Status | Notes |
+|---|---|---|
+| Scheduler | Runs only while the app is open. A missed run executes once on the next start. | Times are the computer's local time zone. For unattended monitoring, keep the app running (e.g. start it at login). |
+| Stopped detection | Needs the current scan to cover all of the competitor's ads. | If a scan stops at its max-ads limit, stopped ads aren't inferred and the summary says why. Set the watchlist's max ads above the competitor's ad count. |
+| Telegram / email | Tested against mocked transports (request format, auth, STARTTLS, error messages). | Use **Settings → Send test** after adding credentials to `.env`. Gmail needs an app password; port 465 uses implicit TLS, other ports use STARTTLS. |
+
 ## Storage
 
 Each ad stores a PNG card screenshot (~60–150 KB) plus up to `max_media_per_ad` original images.

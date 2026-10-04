@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Activity, ArrowRight, Megaphone, Radar, Sparkles, Trophy, Zap } from "lucide-react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ChartTooltip } from "@/components/charts/ChartTooltip";
@@ -8,6 +9,9 @@ import { KpiCard } from "@/components/KpiCard";
 import { BADGE_META } from "@/components/ads/ScoreBadge";
 import { EmptyState, ErrorState, PageHeader } from "@/components/States";
 import { StatusPill } from "@/components/StatusPill";
+import { AdDetailSheet } from "@/components/ads/AdDetailSheet";
+import { CHANGE_META } from "@/components/watch/ChangeFeed";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -154,6 +158,35 @@ function RecentScans({ stats }: { stats: DashboardStats }) {
 }
 
 function ActivityFeed({ stats }: { stats: DashboardStats }) {
+  const changes = useQuery({ queryKey: ["changes", "dashboard"], queryFn: () => api.changes({ limit: 6 }) });
+  const [openAd, setOpenAd] = useState<number | null>(null);
+  if (changes.data?.items.length) {
+    return (
+      <Card>
+        <CardHeader>
+          <div><CardTitle>Watchlist activity</CardTitle><CardDescription>Latest new, stopped and scaled ads</CardDescription></div>
+          <Button variant="ghost" size="sm" asChild><Link to="/watchlist">All <ArrowRight /></Link></Button>
+        </CardHeader>
+        <CardContent className="space-y-1">
+          {changes.data.items.map((c) => {
+            const meta = CHANGE_META[c.kind];
+            const Icon = meta.icon;
+            return (
+              <button key={c.id} type="button" onClick={() => setOpenAd(c.ad.id)} className="flex w-full items-center gap-2.5 rounded-lg p-1.5 text-left hover:bg-accent/50">
+                <div className="size-9 shrink-0 overflow-hidden rounded-md bg-muted">{(c.ad.thumbnail_url || c.ad.screenshot_url) && <img src={(c.ad.thumbnail_url ?? c.ad.screenshot_url)!} alt="" className="size-full object-cover" />}</div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5 text-sm"><Badge variant={meta.variant}><Icon /> {meta.label}</Badge><span className="truncate font-medium">{c.competitor_name}</span></div>
+                  <div className="truncate text-xs text-muted-foreground">{c.ad.headline || c.ad.ad_copy}</div>
+                </div>
+                <span className="shrink-0 text-[11px] text-muted-foreground">{timeAgo(c.created_at)}</span>
+              </button>
+            );
+          })}
+        </CardContent>
+        <AdDetailSheet adId={openAd} onClose={() => setOpenAd(null)} />
+      </Card>
+    );
+  }
   return (
     <Card>
       <CardHeader>

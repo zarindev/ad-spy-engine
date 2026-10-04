@@ -26,7 +26,7 @@ warn_unused_ignores = false
 # SQLModel's Optional primary keys / column expressions and bs4's attribute-value unions
 # produce false positives; keep strictness elsewhere.
 [[tool.mypy.overrides]]
-module = ["app.jobs.*", "app.reports.*", "app.api.*", "app.analysis.*", "app.db.*"]
+module = ["app.jobs.*", "app.reports.*", "app.api.*", "app.analysis.*", "app.db.*", "app.notify"]
 disable_error_code = ["attr-defined", "union-attr", "arg-type", "operator", "call-overload", "assignment", "list-item"]
 
 [[tool.mypy.overrides]]

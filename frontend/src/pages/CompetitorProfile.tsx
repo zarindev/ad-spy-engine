@@ -13,6 +13,8 @@ import { CompetitorAvatar } from "@/components/CompetitorAvatar";
 import { KpiCard } from "@/components/KpiCard";
 import { ErrorState } from "@/components/States";
 import { StatusPill } from "@/components/StatusPill";
+import { ChangeFeed } from "@/components/watch/ChangeFeed";
+import { WatchButton } from "@/components/watch/WatchButton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -117,6 +119,7 @@ export default function CompetitorProfile() {
           <p className="text-sm text-muted-foreground">Last scanned {timeAgo(c.last_scan_at)}{c.page_id ? ` · Page ID ${c.page_id}` : ""}</p>
         </div>
         <div className="flex gap-2">
+          <WatchButton competitorId={c.id} />
           <Button variant="outline" asChild><Link to={`/scan/new?q=${encodeURIComponent(c.page_id ?? c.name)}${c.page_id ? "&type=page_id" : ""}`}><Radar /> Scan again</Link></Button>
           <Button asChild><Link to={`/ads?competitor=${c.id}`}>All ads <ArrowRight /></Link></Button>
         </div>
@@ -206,6 +209,11 @@ export default function CompetitorProfile() {
           </div>
         </div>
 
+        <div className="grid gap-5 lg:grid-cols-2">
+        <Card>
+          <CardHeader><div><CardTitle>Changes</CardTitle><CardDescription>What changed between scans</CardDescription></div></CardHeader>
+          <CardContent><ChangeFeed competitorId={id} onOpenAd={setOpenAd} compact pageSize={8} /></CardContent>
+        </Card>
         <Card>
           <CardHeader><CardTitle>Scan history</CardTitle></CardHeader>
           <CardContent className="space-y-1">
@@ -217,6 +225,7 @@ export default function CompetitorProfile() {
             ))}
           </CardContent>
         </Card>
+        </div>
       </div>
       <AdDetailSheet adId={openAd} onClose={() => setOpenAd(null)} />
     </>

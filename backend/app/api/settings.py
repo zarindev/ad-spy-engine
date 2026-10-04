@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import APIRouter, HTTPException
 from fastapi.concurrency import run_in_threadpool
+from pydantic import BaseModel
 from sqlmodel import select
 
 from app.analysis.scoring import compute_score
@@ -94,3 +95,18 @@ async def update_settings(patch: dict[str, dict[str, Any]]) -> dict:
     save_override(clean)
     rescored = await run_in_threadpool(_rescore_all) if "scoring" in clean else 0
     return {**read_settings(), "rescored": rescored}
+
+
+class NotifyTest(BaseModel):
+    channel: Literal["telegram", "email"]
+
+
+@router.post("/notify/test")
+async def notify_test(body: NotifyTest) -> dict:
+    from app.notify import send_test
+
+    try:
+        await run_in_threadpool(send_test, body.channel)
+    except Exception as exc:  # noqa: BLE001 — show the provider's message to the user
+        raise HTTPException(400, f"{body.channel.title()} test failed: {exc}") from exc
+    return {"ok": True, "channel": body.channel}

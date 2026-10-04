@@ -61,6 +61,8 @@ class Scan(SQLModel, table=True):
     created_at: datetime = Field(default_factory=utcnow, index=True)
     started_at: datetime | None = None
     finished_at: datetime | None = None
+    trigger: str = "manual"  # manual | schedule
+    change_summary: dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSON))
 
     @property
     def duration_seconds(self) -> float | None:
@@ -199,3 +201,38 @@ class AiRun(SQLModel, table=True):
     error: str | None = None
     created_at: datetime = Field(default_factory=utcnow)
     finished_at: datetime | None = None
+
+
+class WatchlistItem(SQLModel, table=True):
+    """A competitor re-scanned automatically on a schedule (while the app is running)."""
+
+    id: int | None = Field(default=None, primary_key=True)
+    competitor_id: int = Field(foreign_key="competitor.id", index=True, unique=True)
+    query: str
+    search_type: str = "keyword"
+    country: str = "US"
+    media_type: str = "all"
+    max_ads: int = 200
+    exact_page: bool = False
+    frequency: str = "daily"  # daily | weekly
+    hour: int = 9  # local time
+    minute: int = 0
+    weekday: int = 0  # 0 = Monday (weekly only)
+    enabled: bool = True
+    notify: bool = True
+    last_run_at: datetime | None = None
+    last_scan_id: int | None = Field(default=None, foreign_key="scan.id")
+    next_run_at: datetime | None = None
+    created_at: datetime = Field(default_factory=utcnow)
+
+
+class ChangeEvent(SQLModel, table=True):
+    """A detected change between two scans of the same competitor."""
+
+    id: int | None = Field(default=None, primary_key=True)
+    competitor_id: int = Field(foreign_key="competitor.id", index=True)
+    scan_id: int = Field(foreign_key="scan.id", index=True)
+    ad_id: int = Field(foreign_key="ad.id", index=True)
+    kind: str = Field(index=True)  # new | stopped | scaled
+    details: dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSON))
+    created_at: datetime = Field(default_factory=utcnow, index=True)
