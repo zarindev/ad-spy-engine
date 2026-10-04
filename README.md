@@ -359,7 +359,7 @@ Details in [docs/LEGAL.md](docs/LEGAL.md). Known limitations in [docs/KNOWN_ISSU
 <img src="docs/assets/logo.svg" alt="" width="56">
 
 ### Md Zarin Tasnim
-**Automation Developer & Creative Strategist**
+**QA Engineer · Developer & Product Engineering background**
 
 Need a custom automation or scraping tool? Let's talk.
 

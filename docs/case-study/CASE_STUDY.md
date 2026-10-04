@@ -11,7 +11,7 @@ Ad Spy Engine: Meta Ad Library Scraper & Competitor Dashboard
 **Your role**
 
 ```text
-Automation Developer & Creative Strategist (solo: product design, scraping, backend, frontend)
+QA Engineer with a developer and product engineering background (solo: product design, scraping, backend, frontend, testing)
 ```
 
 **Project description** (505/600 characters)
@@ -129,6 +129,6 @@ headless Chrome 154, Apple Silicon Mac, home connection). Raw data: `docs/benchm
 I build custom automations: scrapers, monitoring dashboards, data pipelines and AI workflows.
 They are designed to run reliably and are handed over with documentation.
 
-**Md Zarin Tasnim**, Automation Developer & Creative Strategist
+**Md Zarin Tasnim**, QA Engineer · Developer & Product Engineering background
 [Hire me on Upwork](https://www.upwork.com/freelancers/YOUR_PROFILE) ·
 [View the code on GitHub](https://github.com/YOUR_USERNAME/ad-spy-engine)
