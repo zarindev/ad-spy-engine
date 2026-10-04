@@ -23,3 +23,6 @@ data/*
 Thumbs.db
 .idea/
 *.swp
+
+# Demo dataset (scripts/seed_demo.py)
+data-demo/

@@ -93,6 +93,37 @@ def test_dco_variations_count_versions():
     assert rec.variation_count == expected >= 2
 
 
+def test_template_placeholders_never_leak():
+    node = {
+        "ad_archive_id": "1",
+        "snapshot": {
+            "body": {"text": "{{product.brand}}"},
+            "title": "{{product.name}}",
+            "link_description": "{{product.description}}",
+            "cards": [
+                {
+                    "body": "Real copy",
+                    "title": "{{product.name}}",
+                    "link_description": "{{product.description}}",
+                }
+            ],
+        },
+    }
+    rec = record_from_node(node, FIXTURE_TODAY)
+    assert rec.ad_copy == "Real copy"
+    assert rec.headline is None
+    assert rec.description is None
+
+
+def test_is_template_text():
+    from app.scraper.parser import is_template_text
+
+    assert is_template_text("{{product.name}}")
+    assert is_template_text("{{product.price strip_zeros}} |   {{product.name}}")
+    assert not is_template_text("Shop {{product.name}} now")
+    assert not is_template_text("Plain copy")
+
+
 def test_dpa_template_text_falls_back_to_card_copy():
     node = json.loads((FIXTURES / "gymshark_card_dpa.expected.json").read_text())
     rec = record_from_node(node, FIXTURE_TODAY)

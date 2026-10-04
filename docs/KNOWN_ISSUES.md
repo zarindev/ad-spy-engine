@@ -16,6 +16,10 @@ how the app degrades. Last verified against the live site: **2026-10-04** (count
 | Dynamic product ads (DPA) | Copy may contain unrendered placeholders such as `{{product.name}}`. | Parser falls back to the first card's text when the top-level text is a template. |
 | Media URLs | fbcdn URLs are signed and expire (`oe=` parameter). | Thumbnails/images are downloaded during the scan. Videos are only downloaded if `download_videos: true`. |
 | Login wall / captcha | Not bypassed, by design. | Scan stops with status `blocked` plus suggestions (wait, visible mode, undetected driver, slower pacing). The `blocked` path is verified only against synthetic markers, since the live site didn't block during testing. |
+| Meta's result count | The "~N results" figure is Meta's own estimate and can be far higher than the ads it actually returns (e.g. ~13 reported, 3 returned with `has_next_page: false`). | Shown in the UI as "Meta's estimate"; the scan stops when Meta reports no further pages. |
+| Catalog placeholders inside copy | Some catalog ads ship text like "Represent the {{product.custom_label_1}} today!". | Fields made only of placeholders fall back to card text or are blanked. Placeholders inside real sentences are kept, since they are the advertiser's actual template. |
+| Network drop mid-scan | Page loads retry with backoff. A drop while scrolling looks like "no new ads", so the scan ends as `completed` with partial results. | Re-run the scan; already-stored ads are updated, not duplicated. |
+| Hard crash (kill -9 / power loss) | The browser can't be closed by a killed process. | Orphaned chromedriver/Chrome processes are killed on next start (`data/run/drivers.json`), and the scan is marked `interrupted`. |
 | Keyword search breadth | Keyword search matches ad text, so it includes affiliates, resellers and unrelated pages. | Use `--exact-page` to keep only matching page names, or scan by Page ID for precision. |
 
 ## Storage

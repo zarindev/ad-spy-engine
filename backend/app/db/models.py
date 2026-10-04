@@ -125,3 +125,17 @@ class AdSnapshot(SQLModel, table=True):
     days_running: int = 0
     score: int = 0
     captured_at: datetime = Field(default_factory=utcnow)
+
+
+class Report(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    title: str
+    kind: str = "scan"  # scan | competitor | compare | client
+    scan_id: int | None = Field(default=None, foreign_key="scan.id")
+    competitor_ids: list[int] = Field(default_factory=list, sa_column=Column(JSON))
+    options: dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSON))
+    html_path: str | None = None  # relative to data dir
+    pdf_path: str | None = None
+    status: str = "ready"  # ready | failed
+    error: str | None = None
+    created_at: datetime = Field(default_factory=utcnow, index=True)

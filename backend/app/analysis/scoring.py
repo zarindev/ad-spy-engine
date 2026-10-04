@@ -110,3 +110,12 @@ def explain(days: int, variations: int, n_platforms: int, active: bool, full_day
     lines.append(f"Delivered on {n_platforms} placement{'s' if n_platforms != 1 else ''}.")
     lines.append("Still active." if active else "No longer running.")
     return lines
+
+
+def badge_range(badge: str, config: dict[str, Any] | None = None) -> tuple[int, int]:
+    """Inclusive score range for a badge — used for DB filtering."""
+    thresholds = (config or scoring_config()).get("thresholds", {})
+    winner, promising = int(thresholds.get("winner", 75)), int(thresholds.get("promising", 50))
+    return {"winner": (winner, 100), "promising": (promising, winner - 1), "testing": (0, promising - 1)}[
+        badge
+    ]

@@ -14,7 +14,7 @@ from sqlmodel import select
 from app.analysis.scoring import BADGES
 from app.core.config import get_settings
 from app.core.paths import TEMPLATES_DIR, data_dir, reports_dir, slugify
-from app.db.models import Ad, Competitor, Scan
+from app.db.models import Ad, AdSnapshot, Competitor, Scan
 from app.db.session import session_scope
 
 
@@ -40,14 +40,22 @@ def image_data_uri(relative: str | None) -> str | None:
     return f"data:{mime};base64,{base64.b64encode(path.read_bytes()).decode()}"
 
 
-def scan_report_context(scan_id: int, top_n: int = 30) -> dict[str, Any]:
+DEFAULT_SECTIONS = ["summary", "charts", "top_ads", "all_ads"]
+
+
+def scan_report_context(
+    scan_id: int, top_n: int = 30, sections: list[str] | None = None, title: str | None = None
+) -> dict[str, Any]:
     with session_scope() as session:
         scan = session.get(Scan, scan_id)
         if scan is None:
             raise ValueError(f"Scan {scan_id} not found")
         competitor = session.get(Competitor, scan.competitor_id)
         ads = session.exec(
-            select(Ad).where(Ad.last_scan_id == scan_id).order_by(Ad.score.desc(), Ad.days_running.desc())  # type: ignore[attr-defined]
+            select(Ad)
+            .join(AdSnapshot, AdSnapshot.ad_id == Ad.id)
+            .where(AdSnapshot.scan_id == scan_id)
+            .order_by(Ad.score.desc(), Ad.days_running.desc())  # type: ignore[attr-defined]
         ).all()
 
     badges = Counter((a.score_breakdown or {}).get("badge", "testing") for a in ads)
@@ -81,11 +89,21 @@ def scan_report_context(scan_id: int, top_n: int = 30) -> dict[str, Any]:
         "formats": formats.most_common(),
         "platforms": platforms.most_common(),
         "generated_at": datetime.now().strftime("%d %b %Y, %H:%M"),
+        "sections": sections or DEFAULT_SECTIONS,
+        "title": title or (competitor.name if competitor else f"Scan {scan_id}"),
     }
 
 
-def build_scan_report(scan_id: int, out_path: Path | None = None) -> Path:
-    ctx = scan_report_context(scan_id)
+def build_scan_report(
+    scan_id: int, out_path: Path | None = None, options: dict[str, Any] | None = None
+) -> Path:
+    options = options or {}
+    ctx = scan_report_context(
+        scan_id,
+        top_n=int(options.get("top_n", 30)),
+        sections=options.get("sections"),
+        title=options.get("title"),
+    )
     html = jinja_env().get_template("scan_report.html.j2").render(**ctx)
     if out_path is None:
         stamp = datetime.now().strftime("%Y%m%d-%H%M")

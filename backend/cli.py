@@ -284,6 +284,30 @@ def cmd_rescore(_args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_reparse(_args: argparse.Namespace) -> int:
+    """Re-run the parser on stored raw JSON (after parser fixes), keeping screenshots/media."""
+    import json
+
+    from app.jobs.runner import upsert_ad
+    from app.scraper.parser import decompress, record_from_node
+
+    updated = 0
+    with session_scope() as session:
+        ads = session.exec(select(Ad).where(Ad.raw_json.is_not(None))).all()  # type: ignore[union-attr]
+        for ad in ads:
+            node = json.loads(decompress(ad.raw_json) or "{}")
+            record = record_from_node(node, ad.last_seen_at.date())
+            for field in ("ad_copy", "headline", "description", "cta_text"):
+                setattr(ad, field, None)  # allow upsert to clear stale values
+            session.add(ad)
+            session.flush()
+            upsert_ad(session, record, ad.competitor_id, ad.last_scan_id or 0) if ad.last_scan_id else None
+            updated += 1
+        session.commit()
+    console.print(f"[green]Re-parsed {updated} ads from stored JSON[/]")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="cli.py", description="Ad Spy Engine — Meta Ad Library intelligence"
@@ -332,6 +356,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     rescore = sub.add_parser("rescore", help="Recompute Winner Scores after changing weights")
     rescore.set_defaults(func=cmd_rescore)
+
+    reparse = sub.add_parser("reparse", help="Re-run the parser on stored raw JSON (after parser updates)")
+    reparse.set_defaults(func=cmd_reparse)
     return parser
 
 
@@ -339,6 +366,9 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     setup_logging()
     run_migrations()
+    from app.scraper.cleanup import cleanup_orphans
+
+    cleanup_orphans()
     if getattr(args, "max_ads", "unset") is None:
         from app.core.config import get_settings
 

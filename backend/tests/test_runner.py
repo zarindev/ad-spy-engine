@@ -6,7 +6,7 @@ from sqlmodel import select
 
 from app.db.models import AdSnapshot, Competitor, Scan
 from app.db.session import session_scope
-from app.jobs.runner import adopt_page_name, create_scan, mark_interrupted_scans, upsert_ad
+from app.jobs.runner import adopt_page_name, create_scan, upsert_ad
 from app.scraper.ad_library import ScanParams
 from app.scraper.parser import decompress, extract_nodes_from_html, record_from_node
 
@@ -16,6 +16,8 @@ from .conftest import FIXTURE_TODAY
 def test_upsert_creates_ads_and_snapshots(migrated_db, page_html):
     scan = create_scan(ScanParams(query="Gymshark Test"))
     records = [record_from_node(n, FIXTURE_TODAY) for n in extract_nodes_from_html(page_html)[:5]]
+    for r in records:  # unique ids: other test modules share this database
+        r.library_id = f"9{r.library_id}"
     with session_scope() as session:
         results = [upsert_ad(session, r, scan.competitor_id, scan.id) for r in records]
         session.commit()
@@ -37,6 +39,7 @@ def test_upsert_creates_ads_and_snapshots(migrated_db, page_html):
 def test_blank_reparse_does_not_erase_data(migrated_db, page_html):
     scan = create_scan(ScanParams(query="Erase Test"))
     rec = record_from_node(extract_nodes_from_html(page_html)[6], FIXTURE_TODAY)
+    rec.library_id = f"8{rec.library_id}"
     with session_scope() as session:
         upsert_ad(session, rec, scan.competitor_id, scan.id)
         session.commit()
@@ -59,13 +62,21 @@ def test_page_id_placeholder_merges_into_existing(migrated_db):
         assert session.get(Scan, page_scan.id).competitor_id == merged.id
 
 
-def test_interrupted_scans_are_marked(migrated_db):
+def test_worker_recover_marks_running_interrupted(migrated_db, monkeypatch):
+    from app.jobs.worker import ScanWorker
+
     scan = create_scan(ScanParams(query="Crash Test"))
     with session_scope() as session:
         s = session.get(Scan, scan.id)
         s.status = "running"
         session.add(s)
         session.commit()
-    assert mark_interrupted_scans() >= 1
+    queued = create_scan(ScanParams(query="Queued Test"))
+    worker = ScanWorker()
+    enqueued: list[int] = []
+    monkeypatch.setattr(worker, "enqueue", enqueued.append)
+    result = worker.recover()
+    assert result["interrupted"] >= 1
+    assert queued.id in enqueued
     with session_scope() as session:
         assert session.get(Scan, scan.id).status == "interrupted"

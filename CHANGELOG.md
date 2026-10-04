@@ -4,6 +4,21 @@ All notable changes to Ad Spy Engine are documented here. Format: [Keep a Change
 
 ## [Unreleased]
 
+### Phase 2 — API + Dashboard
+- FastAPI app with routers for scans, ads, competitors, stats, reports, settings and SSE events;
+  OpenAPI docs at `/api/docs`.
+- Background scan worker (single thread, `scan` table as the queue), restart recovery
+  (`interrupted` / re-queue), graceful shutdown, orphaned-browser cleanup.
+- Live progress over Server-Sent Events, including scan-thread log lines.
+- React + TypeScript dashboard: Dashboard, New Scan, Live Scan, Scan History, Results Gallery
+  (masonry/list, filters, infinite scroll, bulk export), Ad Detail slide-over with "Why this
+  score", Reports (wizard, in-app preview, PDF), Settings; ⌘/Ctrl+K command palette;
+  dark/light themes.
+- CSV export (per scan, filtered, or selected ads), HTML + PDF reports via headless Chrome.
+- `setup.bat`/`start.bat`/`dev.bat` and `.sh` equivalents.
+- Parser: placeholder-only catalog text is never shown; `cli.py reparse` rebuilds ads from stored JSON.
+- Competitor logos stored locally; keyword competitors adopt the page's own casing.
+
 ### Phase 1 — Core engine (CLI)
 - Selenium scraper for the public Meta Ad Library: keyword and exact Page ID search, country /
   media / platform / status filters, consent-dialog handling, auto-scroll with humanized pacing.

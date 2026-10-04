@@ -13,6 +13,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
 from app.core.config import env, get_settings
+from app.scraper import cleanup
 
 log = logging.getLogger(__name__)
 
@@ -110,6 +111,7 @@ def create_driver(
             ua = driver.execute_script("return navigator.userAgent").replace("HeadlessChrome", "Chrome")
             driver.execute_cdp_cmd("Network.setUserAgentOverride", {"userAgent": ua})
 
+    cleanup.register(driver)
     driver.set_page_load_timeout(int(cfg.get("page_load_timeout", 45)))
     if install_capture:
         driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {"source": XHR_CAPTURE_JS})
@@ -118,6 +120,7 @@ def create_driver(
 
 def safe_quit(driver: Any) -> None:
     try:
+        cleanup.unregister(driver)
         driver.quit()
     except Exception:  # noqa: BLE001 — browser may already be gone
         log.debug("driver.quit() failed", exc_info=True)

@@ -83,8 +83,11 @@ def clean_text(value: Any) -> str | None:
 
 
 def is_template_text(text: str | None) -> bool:
-    """Dynamic product ads contain unrendered placeholders like {{product.name}}."""
-    return bool(text and re.fullmatch(r"\s*\{\{[^}]+\}\}\s*", text))
+    """Catalog ads contain unrendered placeholders like "{{product.price}} | {{product.name}}"."""
+    if not text or "{{" not in text:
+        return False
+    rest = re.sub(r"\{\{[^}]*\}\}", "", text)
+    return not re.search(r"\w", rest)
 
 
 def unwrap_redirect(url: str | None) -> str | None:
@@ -375,15 +378,19 @@ def record_from_node(node: dict[str, Any], today: date | None = None) -> AdRecor
     first_card = cards[0] if cards else {}
     fmt = snap.get("display_format")
 
-    copy = clean_text(snap.get("body"))
-    if not copy or is_template_text(copy):
-        copy = clean_text(first_card.get("body")) or copy
-    headline = clean_text(snap.get("title"))
-    if not headline or is_template_text(headline):
-        headline = clean_text(first_card.get("title")) or headline
-    description = clean_text(snap.get("link_description")) or clean_text(first_card.get("link_description"))
+    def pick(key: str, alt_key: str | None = None) -> str | None:
+        """Top-level text, falling back to the first card when blank or an unrendered template."""
+        for source in (snap, first_card):
+            value = clean_text(source.get(key)) or (clean_text(source.get(alt_key)) if alt_key else None)
+            if value and not is_template_text(value):
+                return value
+        return None
+
+    copy = pick("body")
+    headline = pick("title")
+    description = pick("link_description")
     landing = snap.get("link_url") or first_card.get("link_url")
-    cta_text = clean_text(snap.get("cta_text")) or clean_text(first_card.get("cta_text"))
+    cta_text = pick("cta_text")
     cta_type = snap.get("cta_type") or first_card.get("cta_type")
 
     active = bool(node.get("is_active", True))

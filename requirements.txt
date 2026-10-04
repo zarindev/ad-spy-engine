@@ -17,6 +17,7 @@ apscheduler>=3.10,<4
 imagehash>=4.3
 pillow>=10.4
 anthropic>=0.40
+psutil>=5.9
 
 # Optional: alternative driver (Settings → Scraping → Driver = undetected)
 # undetected-chromedriver>=3.5

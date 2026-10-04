@@ -7,12 +7,14 @@ media downloads run on a small pool and are attached to ads when they complete.
 from __future__ import annotations
 
 import logging
+import re
 import threading
 from collections.abc import Callable
 from concurrent.futures import Future
 from pathlib import Path
 from typing import Any
 
+import httpx
 from sqlmodel import Session, select
 
 from app.analysis.scoring import compute_score
@@ -22,7 +24,13 @@ from app.core.paths import slugify
 from app.db.models import Ad, AdSnapshot, Competitor, Scan, ScanStatus, utcnow
 from app.db.session import session_scope
 from app.scraper.ad_library import AdLibraryScraper, ScanBlocked, ScanCancelled, ScanParams
-from app.scraper.media import MediaDownloader, competitor_media_dir, relative_to_data
+from app.scraper.media import (
+    USER_AGENT,
+    MediaDownloader,
+    competitor_media_dir,
+    download_file,
+    relative_to_data,
+)
 from app.scraper.parser import AdRecord, compress
 
 log = logging.getLogger(__name__)
@@ -167,7 +175,7 @@ def run_scan(
         wait = seconds_until_allowed(session, exclude_scan_id=scan_id)
 
     if wait > 0:
-        emit("log", {"level": "info", "message": f"Rate limit: waiting {wait:.0f}s before starting"})
+        log.info("Rate limit: waiting %.0fs before starting (min_seconds_between_scans)", wait)
         emit("status", {"status": "rate_limited", "wait_seconds": round(wait)})
         if cancel.wait(wait):
             return _update_scan(scan_id, status=ScanStatus.CANCELLED, finished_at=utcnow())
@@ -220,6 +228,14 @@ def run_scan(
                 session.commit()
                 ad_id, ad_payload = ad.id, ad_summary(ad)
             counters["new"] += int(is_new)
+            counters["seen"] = counters.get("seen", 0) + 1
+            if counters["seen"] % 10 == 0:  # partial counts survive a hard crash
+                _update_scan(
+                    scan_id,
+                    ads_found=counters["seen"],
+                    ads_processed=counters["seen"],
+                    new_ads=counters["new"],
+                )
             if download_media:
                 downloader = ctx["downloader"]
                 if record.thumbnail_url:
@@ -340,20 +356,43 @@ def adopt_page_name(competitor_id: int, scan_id: int, page_name: str) -> Competi
         return existing
 
 
+def download_logo(slug: str, url: str) -> str | None:
+    """Profile-image URLs expire, so keep a local copy (data-relative path)."""
+    with httpx.Client(timeout=20, follow_redirects=True, headers={"User-Agent": USER_AGENT}) as client:
+        path = download_file(client, url, competitor_media_dir(slug) / "_logo", 2_000_000)
+    return relative_to_data(path) if path else None
+
+
+def _adopt_display_casing(session: Session, competitor: Competitor) -> None:
+    """Keyword scans store the typed query ("huel"); prefer the page's own casing ("Huel")."""
+    if competitor.name != competitor.name.lower():
+        return
+    target = re.sub(r"[^a-z0-9]", "", competitor.name.lower())
+    names = session.exec(
+        select(Ad.page_name).where(Ad.competitor_id == competitor.id, Ad.page_name.is_not(None))  # type: ignore[union-attr]
+    ).all()
+    for name in names:
+        if name and re.sub(r"[^a-z0-9]", "", name.lower()) == target:
+            competitor.name = name
+            return
+
+
 def _finalize_competitor(competitor_id: int) -> None:
     with session_scope() as session:
         competitor = session.get(Competitor, competitor_id)
         if competitor is None:
             return
         competitor.last_scan_at = utcnow()
-        if not competitor.logo_url:
-            ad = session.exec(
-                select(Ad)
-                .where(Ad.competitor_id == competitor_id, Ad.page_profile_image.is_not(None))  # type: ignore[union-attr]
-                .order_by(Ad.score.desc())  # type: ignore[attr-defined]
-            ).first()
-            if ad:
-                competitor.logo_url = ad.page_profile_image
+        _adopt_display_casing(session, competitor)
+        if not competitor.logo_url or competitor.logo_url.startswith("http"):
+            stmt = select(Ad).where(
+                Ad.competitor_id == competitor_id, Ad.page_profile_image.is_not(None)  # type: ignore[union-attr]
+            )
+            if competitor.page_id:
+                stmt = stmt.where(Ad.page_id == competitor.page_id)
+            ad = session.exec(stmt.order_by(Ad.last_seen_at.desc())).first()  # type: ignore[attr-defined]
+            if ad and ad.page_profile_image:
+                competitor.logo_url = download_logo(competitor.slug, ad.page_profile_image)
         session.add(competitor)
         session.commit()
 
@@ -392,18 +431,3 @@ def scan_summary(scan: Scan) -> dict[str, Any]:
         "block_reason": scan.block_reason,
         "error": scan.error,
     }
-
-
-def mark_interrupted_scans() -> int:
-    """On startup: scans left 'running'/'queued' by a crash or restart become 'interrupted'."""
-    with session_scope() as session:
-        stale = session.exec(
-            select(Scan).where(Scan.status.in_([ScanStatus.RUNNING, ScanStatus.QUEUED]))  # type: ignore[attr-defined]
-        ).all()
-        for scan in stale:
-            scan.status = ScanStatus.INTERRUPTED
-            scan.finished_at = scan.finished_at or utcnow()
-            scan.error = "The app stopped while this scan was in progress."
-            session.add(scan)
-        session.commit()
-        return len(stale)
