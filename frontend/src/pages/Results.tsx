@@ -1,5 +1,7 @@
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import { ArrowDownWideNarrow, Copy, Download, FilterX, LayoutGrid, List, Loader2, Search, SearchX, X } from "lucide-react";
+import { ArrowDownWideNarrow, Copy, Download, FilterX, Layers, LayoutGrid, List, Loader2, Search, SearchX, X } from "lucide-react";
+import { AiAnalyzeButton } from "@/components/ai/AiAnalyzeButton";
+import { Switch } from "@/components/ui/switch";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -71,6 +73,8 @@ export default function Results() {
     platform: params.get("platform") ?? undefined,
     status: params.get("status") ?? undefined,
     sort: (params.get("sort") as AdQuery["sort"]) ?? "score",
+    group_key: params.get("group") ?? undefined,
+    grouped: params.get("grouped") === "1" || undefined,
   };
   const update = (patch: Record<string, string | null>) => {
     const next = new URLSearchParams(params);
@@ -121,7 +125,7 @@ export default function Results() {
       return n;
     });
   const openDetail = (ad: Ad) => setOpenAd(ad.id);
-  const filtersActive = ["q", "badge", "media", "platform", "status", "competitor", "scan"].some((k) => params.get(k));
+  const filtersActive = ["q", "badge", "media", "platform", "status", "competitor", "scan", "group"].some((k) => params.get(k));
   const compName = competitors.data?.find((c) => c.id === query.competitor_id)?.name;
 
   return (
@@ -130,7 +134,7 @@ export default function Results() {
         title="Results gallery"
         description={
           <>
-            {formatNumber(total)} ads
+            {formatNumber(total)} {query.grouped ? "variation groups" : "ads"}
             {scan.data && (
               <>
                 {" "}from scan <Link to={`/scans/${scan.data.id}`} className="text-primary hover:underline">#{scan.data.id} “{scan.data.query}”</Link>
@@ -153,6 +157,11 @@ export default function Results() {
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search copy, headlines, pages, Library ID…" className="pl-9" />
         </div>
+        {query.group_key && (
+          <button type="button" onClick={() => update({ group: null })} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-primary/50 bg-primary/10 px-3 text-xs font-medium">
+            One variation group <X className="size-3" />
+          </button>
+        )}
         {query.scan_id && (
           <button type="button" onClick={() => update({ scan: null })} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-primary/50 bg-primary/10 px-3 text-xs font-medium">
             Scan #{query.scan_id} <X className="size-3" />
@@ -187,6 +196,10 @@ export default function Results() {
           </Button>
         )}
         <div className="ml-auto flex items-center gap-2">
+          <label className="flex h-9 cursor-pointer items-center gap-2 rounded-lg border border-border px-3 text-xs font-medium text-muted-foreground" title="Show one ad per variation group">
+            <Layers className="size-3.5" /> Collapse variations
+            <Switch checked={!!query.grouped} onCheckedChange={(v) => update({ grouped: v ? "1" : null })} />
+          </label>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="h-9">
@@ -236,6 +249,7 @@ export default function Results() {
           >
             <Copy /> Copy Library IDs
           </Button>
+          <AiAnalyzeButton size="sm" scope={{ ad_ids: [...selected], limit: 2000 }} label="Analyze selected" />
           <Button size="sm" variant="ghost" onClick={() => setSelected(new Set(items.map((a) => a.id)))}>
             Select all loaded
           </Button>

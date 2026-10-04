@@ -27,7 +27,7 @@ warn_unused_ignores = false
 # produce false positives; keep strictness elsewhere.
 [[tool.mypy.overrides]]
 module = ["app.jobs.*", "app.reports.*", "app.api.*", "app.analysis.*", "app.db.*"]
-disable_error_code = ["attr-defined", "union-attr", "arg-type", "operator", "call-overload"]
+disable_error_code = ["attr-defined", "union-attr", "arg-type", "operator", "call-overload", "assignment", "list-item"]
 
 [[tool.mypy.overrides]]
 module = ["app.scraper.parser"]

@@ -17,6 +17,7 @@ from typing import Any
 import httpx
 from sqlmodel import Session, select
 
+from app.analysis.grouping import regroup_competitor
 from app.analysis.scoring import compute_score
 from app.core.config import get_settings
 from app.core.logging import scan_log
@@ -24,6 +25,7 @@ from app.core.paths import slugify
 from app.db.models import Ad, AdSnapshot, Competitor, Scan, ScanStatus, utcnow
 from app.db.session import session_scope
 from app.scraper.ad_library import AdLibraryScraper, ScanBlocked, ScanCancelled, ScanParams
+from app.scraper.landing import capture_landing_pages, is_capturable, url_key
 from app.scraper.media import (
     USER_AGENT,
     MediaDownloader,
@@ -281,6 +283,10 @@ def run_scan(
 
         _attach_media(pending)
         stats = scraper.stats
+        if stats.found:
+            post_process(
+                scan_id, ctx["competitor"].id, emit, cancel if status != ScanStatus.CANCELLED else None
+            )
         _finalize_competitor(ctx["competitor"].id)
         scan = _update_scan(
             scan_id,
@@ -297,6 +303,52 @@ def run_scan(
         log.info("Scan %s finished with status %s", scan_id, status)
         emit("status", {"status": status, "scan": scan_summary(scan)})
         return scan
+
+
+def post_process(scan_id: int, competitor_id: int, emit: EventFn, cancel: threading.Event | None) -> None:
+    """After collection: variation grouping, then landing page screenshots. Never fails a scan."""
+    try:
+        emit("status", {"status": "grouping"})
+        with session_scope() as session:
+            regroup_competitor(session, competitor_id)
+            session.commit()
+    except Exception:  # noqa: BLE001
+        log.exception("Variation grouping failed")
+
+    landing_cfg = get_settings().get("landing", {})
+    if cancel is None or cancel.is_set() or not landing_cfg.get("enabled", True):
+        return
+    try:
+        with session_scope() as session:
+            competitor = session.get(Competitor, competitor_id)
+            ads = session.exec(
+                select(Ad)
+                .join(AdSnapshot, AdSnapshot.ad_id == Ad.id)
+                .where(AdSnapshot.scan_id == scan_id, Ad.landing_url.is_not(None))  # type: ignore[union-attr]
+                .order_by(Ad.score.desc())  # type: ignore[attr-defined]
+            ).all()
+            urls: list[str] = []
+            seen: set[str] = set()
+            for ad in ads:
+                key = url_key(ad.landing_url)
+                if key and key not in seen and is_capturable(ad.landing_url):
+                    seen.add(key)
+                    urls.append(ad.landing_url)  # type: ignore[arg-type]
+                if len(urls) >= int(landing_cfg.get("max_per_scan", 10)):
+                    break
+            if not urls or competitor is None:
+                return
+            emit("status", {"status": "capturing_landing_pages", "count": len(urls)})
+            log.info("Capturing up to %d landing pages", len(urls))
+            capture_landing_pages(
+                session,
+                urls,
+                competitor.slug,
+                cancel,
+                on_progress=lambda i, n: emit("landing_progress", {"done": i, "total": n}),
+            )
+    except Exception:  # noqa: BLE001
+        log.exception("Landing page capture failed")
 
 
 def _attach_media(pending: list[tuple[int, str, Future[Path | None]]]) -> None:

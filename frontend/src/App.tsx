@@ -10,6 +10,8 @@ const Scans = lazy(() => import("@/pages/Scans"));
 const Results = lazy(() => import("@/pages/Results"));
 const Reports = lazy(() => import("@/pages/Reports"));
 const Settings = lazy(() => import("@/pages/Settings"));
+const Competitors = lazy(() => import("@/pages/Competitors"));
+const CompetitorProfile = lazy(() => import("@/pages/CompetitorProfile"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
 function PageFallback() {
@@ -32,6 +34,8 @@ export default function App() {
             ["/scans", Scans],
             ["/scans/:id", LiveScan],
             ["/ads", Results],
+            ["/competitors", Competitors],
+            ["/competitors/:id", CompetitorProfile],
             ["/reports", Reports],
             ["/settings", Settings],
             ["*", NotFound],

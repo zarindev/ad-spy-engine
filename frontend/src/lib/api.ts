@@ -31,6 +31,34 @@ export interface Ad {
   library_url: string;
   first_seen_at: string | null;
   last_seen_at: string | null;
+  group_key: string | null;
+  group_size: number;
+  group_creatives: number;
+  group_copies: number;
+}
+
+export interface LandingPage {
+  url: string;
+  final_url: string | null;
+  title: string | null;
+  screenshot_url: string | null;
+  status: "ok" | "failed" | "skipped";
+  error: string | null;
+  captured_at: string | null;
+}
+
+export interface AdAnalysis {
+  model: string;
+  hook_type: string;
+  hook_text: string | null;
+  angle: string | null;
+  emotion: string | null;
+  offer: string | null;
+  cta: string | null;
+  target_audience_guess: string | null;
+  one_line_summary: string | null;
+  what_to_steal: string | null;
+  created_at: string | null;
 }
 
 export interface ScoreComponent { value: number; weight: number; points: number; max_points: number }
@@ -51,6 +79,84 @@ export interface AdDetail extends Ad {
   source: string;
   collation_id: string | null;
   history: { scan_id: number; captured_at: string; status: string; variation_count: number; days_running: number; score: number }[];
+  group: { key: string | null; size: number; creatives: number; copies: number; label: string; members: Ad[] };
+  landing_page: LandingPage | null;
+  landing_capturable: boolean;
+  analysis: AdAnalysis | null;
+}
+
+export interface NameCount { name: string; count: number }
+
+export interface AiInsights {
+  analyzed: number;
+  hook_distribution?: NameCount[];
+  top_angles?: NameCount[];
+  emotions?: NameCount[];
+  recurring_offers?: NameCount[];
+  steal_ideas?: { ad_id: number; score: number; idea: string; hook: string | null }[];
+}
+
+export interface VariationGroup {
+  key: string;
+  size: number;
+  creatives: number;
+  copies: number;
+  label: string;
+  best_score: number;
+  max_days: number;
+  lead: Ad;
+}
+
+export interface CompetitorProfile {
+  competitor: Competitor;
+  timeline: { week: string; launched: number; running: number }[];
+  formats: NameCount[];
+  placements: NameCount[];
+  ctas: NameCount[];
+  longevity: NameCount[];
+  top_ads: Ad[];
+  groups: VariationGroup[];
+  group_count: number;
+  insights: AiInsights;
+  recent_scans: Scan[];
+}
+
+export interface AiScope {
+  ad_ids?: number[];
+  scan_id?: number;
+  competitor_id?: number;
+  only_winners?: boolean;
+  limit?: number;
+}
+
+export interface AiEstimate {
+  enabled: boolean;
+  model: string;
+  ads: number;
+  cached: number;
+  to_analyze: number;
+  input_tokens: number;
+  output_tokens: number;
+  cost_usd: number;
+  pricing: { input_per_mtok: number; output_per_mtok: number };
+  note: string;
+}
+
+export interface AiRun {
+  id: number;
+  status: "queued" | "running" | "completed" | "failed";
+  model: string;
+  total: number;
+  done: number;
+  failed: number;
+  cached: number;
+  input_tokens: number;
+  output_tokens: number;
+  cost_usd: number;
+  estimate_usd: number;
+  error: string | null;
+  created_at: string | null;
+  finished_at: string | null;
 }
 
 export interface Scan {
@@ -198,6 +304,8 @@ export interface AdQuery {
   platform?: string;
   status?: string;
   sort?: "score" | "days" | "newest" | "variations" | "first_seen";
+  group_key?: string;
+  grouped?: boolean;
   limit?: number;
   offset?: number;
 }
@@ -216,6 +324,13 @@ export const api = {
   ads: (q: AdQuery) => request<Paged<Ad>>(`/api/ads${qs({ ...q })}`),
   ad: (id: number) => request<AdDetail>(`/api/ads/${id}`),
   competitors: () => request<Competitor[]>("/api/competitors"),
+  competitorProfile: (id: number) => request<CompetitorProfile>(`/api/competitors/${id}/profile`),
+  regroup: (id: number) => request<{ ads: number; groups: number }>(`/api/competitors/${id}/regroup`, { method: "POST" }),
+  captureLanding: (adId: number) => request<LandingPage>(`/api/ads/${adId}/landing`, { method: "POST" }),
+  aiStatus: () => request<{ enabled: boolean; model: string }>("/api/ai/status"),
+  aiEstimate: (scope: AiScope) => request<AiEstimate>("/api/ai/estimate", { method: "POST", body: JSON.stringify(scope) }),
+  aiStart: (scope: AiScope) => request<AiRun>("/api/ai/runs", { method: "POST", body: JSON.stringify(scope) }),
+  aiRun: (id: number) => request<AiRun>(`/api/ai/runs/${id}`),
   reports: () => request<Report[]>("/api/reports"),
   createReport: (body: { scan_id: number; title?: string; sections: string[]; top_n: number; pdf: boolean }) =>
     request<Report>("/api/reports", { method: "POST", body: JSON.stringify(body) }),
@@ -227,7 +342,8 @@ export const api = {
 
 export const exportUrl = {
   scanCsv: (id: number) => `/api/scans/${id}/export.csv`,
-  adsCsv: (q: AdQuery & { ids?: string }) => `/api/ads/export.csv${qs({ ...q, sort: undefined, limit: undefined, offset: undefined })}`,
+  adsCsv: (q: AdQuery & { ids?: string }) =>
+    `/api/ads/export.csv${qs({ ...q, sort: undefined, limit: undefined, offset: undefined, grouped: undefined, group_key: undefined })}`,
 };
 
 export const FINISHED: ScanStatus[] = ["completed", "failed", "blocked", "cancelled", "interrupted"];

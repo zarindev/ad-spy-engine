@@ -57,6 +57,11 @@ export function AdCard({ ad, onOpen, selected, onSelect, index = 0 }: CardProps)
             <ScoreRing score={ad.score} badge={ad.badge} size={38} stroke={3.5} className="text-white" />
           </div>
         </div>
+        {ad.group_size > 1 && (
+          <span className="absolute right-2 bottom-2 inline-flex items-center gap-1 rounded-full bg-primary/85 px-2 py-0.5 text-[11px] font-medium text-white backdrop-blur-md" title="Ads sharing this creative or copy">
+            {ad.group_creatives} creative{ad.group_creatives !== 1 ? "s" : ""} · {ad.group_copies} cop{ad.group_copies !== 1 ? "ies" : "y"}
+          </span>
+        )}
         {ad.variation_count > 1 && (
           <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-[11px] font-medium text-white backdrop-blur-md">
             <Layers className="size-3" /> {ad.variation_count} variations

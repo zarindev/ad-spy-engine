@@ -16,7 +16,7 @@ python-dateutil>=2.9
 apscheduler>=3.10,<4
 imagehash>=4.3
 pillow>=10.4
-anthropic>=0.40
+anthropic>=1.11
 psutil>=5.9
 
 # Optional: alternative driver (Settings → Scraping → Driver = undetected)

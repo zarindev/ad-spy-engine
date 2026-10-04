@@ -10,10 +10,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.api import ads, competitors, events, reports, scans, settings, stats
+from app.api import ads, ai, competitors, events, reports, scans, settings, stats
 from app.core.logging import setup_logging
 from app.core.paths import FRONTEND_DIST, media_dir, reports_dir
 from app.db.session import run_migrations
+from app.jobs.ai_worker import ai_worker
 from app.jobs.worker import worker
 from app.scraper.cleanup import cleanup_orphans
 
@@ -26,11 +27,13 @@ async def lifespan(_app: FastAPI):
     setup_logging()
     run_migrations()
     cleanup_orphans()
+    ai_worker.recover()
     recovered = worker.recover()
     if any(recovered.values()):
         log.warning("Startup recovery: %s", recovered)
     log.info("Ad Spy Engine %s started", VERSION)
     yield
+    ai_worker.shutdown()
     worker.shutdown()
 
 
@@ -48,7 +51,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-for module in (scans, ads, competitors, stats, reports, settings, events):
+for module in (scans, ads, competitors, stats, reports, settings, events, ai):
     app.include_router(module.router)
 
 # Only media and reports are exposed — never the database or logs.

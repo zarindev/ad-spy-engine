@@ -118,3 +118,31 @@ def test_report_html_without_pdf(client):
 def test_files_mount_does_not_expose_database(client):
     assert client.get("/files/app.db").status_code in (404, 503)
     assert client.get("/files/media/../app.db").status_code in (404, 503)
+
+
+def test_competitor_profile_and_grouped_list(client):
+    comp_id = client.get(f"/api/scans/{client.scan_id}").json()["competitor_id"]
+    assert client.post(f"/api/competitors/{comp_id}/regroup").json()["ads"] >= 12
+    prof = client.get(f"/api/competitors/{comp_id}/profile").json()
+    assert prof["competitor"]["ad_count"] >= 12
+    assert len(prof["timeline"]) >= 26
+    assert sum(b["count"] for b in prof["longevity"]) == prof["competitor"]["ad_count"]
+    full = client.get(f"/api/ads?competitor_id={comp_id}&limit=500").json()
+    grouped = client.get(f"/api/ads?competitor_id={comp_id}&grouped=true&limit=500").json()
+    assert grouped["total"] <= full["total"]
+    assert len({a["group_key"] for a in grouped["items"]}) == len(grouped["items"])
+
+
+def test_ad_detail_phase3_fields(client):
+    ad_id = client.get(f"/api/ads?scan_id={client.scan_id}&limit=1").json()["items"][0]["id"]
+    detail = client.get(f"/api/ads/{ad_id}").json()
+    assert {"group", "landing_page", "analysis", "landing_capturable"} <= set(detail)
+    assert "label" in detail["group"]
+
+
+def test_ai_endpoints_without_key(client, monkeypatch):
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    assert client.get("/api/ai/status").json()["enabled"] is False
+    est = client.post("/api/ai/estimate", json={"scan_id": client.scan_id}).json()
+    assert est["to_analyze"] >= 1 and est["cost_usd"] > 0
+    assert client.post("/api/ai/runs", json={"scan_id": client.scan_id}).status_code == 400

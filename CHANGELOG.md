@@ -4,6 +4,22 @@ All notable changes to Ad Spy Engine are documented here. Format: [Keep a Change
 
 ## [Unreleased]
 
+### Phase 3 — Intelligence
+- Variation grouping: perceptual hashing (pHash, banded LSH) plus normalized/near-identical copy
+  matching groups each competitor's ads into "N creatives · M copy tests". Runs automatically
+  after every scan; "Collapse variations" in the gallery; groups on Ad Detail and Competitor pages.
+- Landing page capture: top distinct destinations (tracking parameters stripped, on-platform links
+  skipped) are screenshotted after each scan; on-demand capture from Ad Detail.
+- AI copy analysis (optional, `ANTHROPIC_API_KEY`): batched structured-output calls to Claude
+  (default `claude-sonnet-5-5`, configurable). Returns hook type, hook, angle, emotion, offer, CTA,
+  audience, summary and "what to steal". Results are cached per Library ID. Cost estimate and
+  explicit confirm come before every run, and actual tokens and cost are recorded per run.
+  Server-side refusal fallback is enabled.
+- Competitors list and Competitor Profile: KPIs, weekly launch/running timeline, format,
+  placement, CTA and lifespan breakdowns, variation groups, AI hooks & angles, ideas worth
+  stealing, top ads.
+- Migration 0003 (grouping columns, `landingpage`, `adanalysis`, `airun`).
+
 ### Phase 2 — API + Dashboard
 - FastAPI app with routers for scans, ads, competitors, stats, reports, settings and SSE events;
   OpenAPI docs at `/api/docs`.

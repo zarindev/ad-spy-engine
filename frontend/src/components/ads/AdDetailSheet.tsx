@@ -1,8 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  CalendarDays, Check, Copy, ExternalLink, Hash, Layers, Link2, MonitorSmartphone, MousePointerClick, Sparkles,
+  CalendarDays, Camera, Check, Copy, ExternalLink, Globe, Hash, Layers, Link2, Loader2, MonitorSmartphone, MousePointerClick, Sparkles,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { AiAnalyzeButton } from "@/components/ai/AiAnalyzeButton";
+import { AnalysisCards } from "@/components/ai/AnalysisCards";
 import { toast } from "sonner";
 import { ErrorState } from "@/components/States";
 import { Badge } from "@/components/ui/badge";
@@ -111,7 +113,105 @@ function Fact({ icon: Icon, label, children }: { icon: typeof Hash; label: strin
   );
 }
 
-function DetailBody({ ad }: { ad: AdDetail }) {
+function SectionTitle({ children, action }: { children: React.ReactNode; action?: React.ReactNode }) {
+  return (
+    <div className="mb-2 flex items-center justify-between">
+      <span className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{children}</span>
+      {action}
+    </div>
+  );
+}
+
+function VariationGroup({ ad, onOpen }: { ad: AdDetail; onOpen: (id: number) => void }) {
+  if (!ad.group || ad.group.size < 2) return null;
+  return (
+    <div className="rounded-xl border border-border bg-card p-4">
+      <SectionTitle>Variation group</SectionTitle>
+      <div className="mb-3">
+        <div className="text-lg font-semibold">{ad.group.label}</div>
+        <div className="text-xs text-muted-foreground">{ad.group.size} ads share this creative or near-identical copy</div>
+      </div>
+      <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
+        {ad.group.members.map((m) => (
+          <button key={m.id} type="button" onClick={() => onOpen(m.id)} className="group relative aspect-square overflow-hidden rounded-lg border border-border bg-muted" title={m.headline ?? m.ad_copy ?? ""}>
+            {(m.thumbnail_url || m.screenshot_url) && <img src={(m.thumbnail_url ?? m.screenshot_url)!} alt="" loading="lazy" className="size-full object-cover transition-transform group-hover:scale-105" />}
+            <span className="num absolute right-1 bottom-1 rounded bg-black/70 px-1 text-[10px] text-white">{m.score}</span>
+          </button>
+        ))}
+      </div>
+      {ad.group.size - 1 > ad.group.members.length && (
+        <p className="mt-2 text-xs text-muted-foreground">+{ad.group.size - 1 - ad.group.members.length} more in this group</p>
+      )}
+    </div>
+  );
+}
+
+function LandingSection({ ad }: { ad: AdDetail }) {
+  const qc = useQueryClient();
+  const capture = useMutation({
+    mutationFn: () => api.captureLanding(ad.id),
+    onSuccess: () => {
+      toast.success("Landing page captured");
+      qc.invalidateQueries({ queryKey: ["ad", ad.id] });
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Capture failed"),
+  });
+  if (!ad.landing_url) return null;
+  const lp = ad.landing_page;
+  return (
+    <div className="rounded-xl border border-border bg-card p-4">
+      <SectionTitle
+        action={
+          ad.landing_capturable && (
+            <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" disabled={capture.isPending} onClick={() => capture.mutate()}>
+              {capture.isPending ? <Loader2 className="animate-spin" /> : <Camera />} {lp ? "Recapture" : "Capture"}
+            </Button>
+          )
+        }
+      >
+        Landing page
+      </SectionTitle>
+      {lp?.status === "ok" && lp.screenshot_url ? (
+        <a href={lp.final_url ?? lp.url} target="_blank" rel="noreferrer" className="group block">
+          <div className="overflow-hidden rounded-lg border border-border">
+            <div className="flex items-center gap-1.5 border-b border-border bg-muted px-2.5 py-1.5">
+              <span className="size-2 rounded-full bg-destructive/60" /><span className="size-2 rounded-full bg-warning/60" /><span className="size-2 rounded-full bg-success/60" />
+              <span className="num ml-2 truncate text-[10px] text-muted-foreground">{(lp.final_url ?? lp.url).replace(/^https?:\/\//, "")}</span>
+            </div>
+            <img src={lp.screenshot_url} alt="Landing page" className="w-full transition-opacity group-hover:opacity-90" />
+          </div>
+          {lp.title && <div className="mt-2 truncate text-sm font-medium">{lp.title}</div>}
+          <div className="text-[11px] text-muted-foreground">Captured {formatDate(lp.captured_at)}</div>
+        </a>
+      ) : (
+        <div className="flex items-center gap-3 rounded-lg bg-muted/50 px-3 py-3 text-sm text-muted-foreground">
+          <Globe className="size-4 shrink-0" />
+          {lp?.status === "failed"
+            ? `Capture failed: ${lp.error ?? "unknown error"}`
+            : ad.landing_capturable
+              ? "Not captured yet — landing pages of top ads are captured after each scan."
+              : "This ad points to an on-platform destination (Facebook, Instagram, app store), so there's no page to capture."}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AiSection({ ad }: { ad: AdDetail }) {
+  if (ad.analysis) return <AnalysisCards analysis={ad.analysis} />;
+  if (!ad.ad_copy && !ad.headline) return null;
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-xl border border-dashed border-primary/40 bg-primary/5 p-4">
+      <div>
+        <div className="text-sm font-medium">AI copy analysis</div>
+        <div className="text-xs text-muted-foreground">Hook type, angle, emotion, offer and one idea worth stealing.</div>
+      </div>
+      <AiAnalyzeButton scope={{ ad_ids: [ad.id] }} label="Analyze" size="sm" />
+    </div>
+  );
+}
+
+function DetailBody({ ad, onOpen }: { ad: AdDetail; onOpen: (id: number) => void }) {
   const visuals = [
     ad.thumbnail_url && { key: "creative", label: "Creative", src: ad.thumbnail_url },
     ad.screenshot_url && { key: "card", label: "Library card", src: ad.screenshot_url },
@@ -145,6 +245,7 @@ function DetailBody({ ad }: { ad: AdDetail }) {
             No visuals captured
           </div>
         )}
+        <LandingSection ad={ad} />
       </div>
 
       <div className="space-y-4">
@@ -175,10 +276,12 @@ function DetailBody({ ad }: { ad: AdDetail }) {
           </Fact>
         </div>
 
+        <AiSection ad={ad} />
         <TextBlock label="Ad copy" text={ad.ad_copy} />
         <TextBlock label="Headline" text={ad.headline} />
         <TextBlock label="Description" text={ad.description} />
         <ScoreBreakdownPanel ad={ad} />
+        <VariationGroup ad={ad} onOpen={onOpen} />
 
         {ad.history.length > 1 && (
           <div className="rounded-xl border border-border bg-card p-4">
@@ -201,10 +304,12 @@ function DetailBody({ ad }: { ad: AdDetail }) {
 }
 
 export function AdDetailSheet({ adId, onClose }: { adId: number | null; onClose: () => void }) {
-  const query = useQuery({ queryKey: ["ad", adId], queryFn: () => api.ad(adId!), enabled: adId !== null });
+  const [current, setCurrent] = useState<number | null>(adId);
+  useEffect(() => setCurrent(adId), [adId]);
+  const query = useQuery({ queryKey: ["ad", current], queryFn: () => api.ad(current!), enabled: current !== null });
   const ad = query.data;
   return (
-    <Sheet open={adId !== null} onOpenChange={(o) => !o && onClose()}>
+    <Sheet open={current !== null} onOpenChange={(o) => !o && onClose()}>
       <SheetContent>
         <div className="flex items-center gap-3 border-b border-border px-6 py-4 pr-14">
           {ad?.page_profile_image && <img src={ad.page_profile_image} alt="" className="size-9 rounded-lg border border-border" onError={(e) => (e.currentTarget.style.display = "none")} />}
@@ -235,7 +340,7 @@ export function AdDetailSheet({ adId, onClose }: { adId: number | null; onClose:
             </div>
           )}
           {query.isError && <ErrorState className="m-6" error={query.error} onRetry={() => query.refetch()} />}
-          {ad && <DetailBody ad={ad} />}
+          {ad && <DetailBody ad={ad} onOpen={setCurrent} />}
         </div>
       </SheetContent>
     </Sheet>

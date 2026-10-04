@@ -24,6 +24,11 @@ scraping:
   max_media_per_ad: 4       # dynamic/catalog ads can carry dozens of images
   media_workers: 4
 
+landing:
+  enabled: true             # screenshot ad destinations after each scan
+  max_per_scan: 10          # top-scoring distinct landing pages captured per scan
+  timeout: 25               # seconds per page load
+
 scoring:
   weights:
     longevity: 0.55

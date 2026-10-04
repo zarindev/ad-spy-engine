@@ -22,6 +22,15 @@ how the app degrades. Last verified against the live site: **2026-10-04** (count
 | Hard crash (kill -9 / power loss) | The browser can't be closed by a killed process. | Orphaned chromedriver/Chrome processes are killed on next start (`data/run/drivers.json`), and the scan is marked `interrupted`. |
 | Keyword search breadth | Keyword search matches ad text, so it includes affiliates, resellers and unrelated pages. | Use `--exact-page` to keep only matching page names, or scan by Page ID for precision. |
 
+## Intelligence
+
+| Area | Status | Notes |
+|---|---|---|
+| AI analysis | Built against the official Anthropic SDK (1.11) and tested with a mocked client. **Not yet run against the live API** in development (no key was available). | First real run: analyze a handful of ads and check `Actual cost` in the dialog against the estimate. |
+| AI cost estimate | Character-count heuristic (~3.2 chars/token, ~320 output tokens per ad). | Actual input/output tokens and cost are recorded per run from `response.usage`. |
+| Variation grouping | Heuristic. Copy matching can chain groups together (A≈B, B≈C), so resellers posting one caption over many images form one large group. | Thresholds live in `analysis/grouping.py` (`PHASH_DISTANCE`, `COPY_SIMILARITY`). Video ads are grouped by their preview frame. |
+| Landing pages | Viewport screenshot (1366×900) after dismissing common cookie banners. Sites with bot protection may show a challenge page. | Failures are stored with the error and can be retried from Ad Detail. Pages are reused for 7 days. |
+
 ## Storage
 
 Each ad stores a PNG card screenshot (~60–150 KB) plus up to `max_media_per_ad` original images.

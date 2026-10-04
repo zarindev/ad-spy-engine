@@ -63,6 +63,21 @@ the JSON degrades the data but doesn't break scans.
 | Hard crash (kill -9, power loss) | startup marks `running` scans `interrupted`, re-queues `queued` ones; counters are saved every 10 ads |
 | Orphaned Chrome after a crash | PIDs + profile dirs tracked in `data/run/drivers.json`, killed on next start |
 
+## Intelligence pipeline (after each scan)
+
+1. **Grouping** (`analysis/grouping.py`). Computes a 64-bit pHash of each thumbnail and a hash of
+   the normalized copy. Candidate pairs come from 8-band LSH (two hashes within 6 bits always
+   share ≥ 2 bands), confirmed by Hamming distance. Copy matches use exact hash plus
+   `SequenceMatcher ≥ 0.92` within a first-three-words block. Union-find yields groups; each ad
+   stores `group_key`, `group_size`, `group_creatives` and `group_copies`.
+2. **Landing pages** (`scraper/landing.py`). Normalizes URLs (drops `utm_*`, `fbclid`, …), skips
+   on-platform destinations, and captures the top `landing.max_per_scan` distinct pages by Winner
+   Score with a separate headless Chrome.
+3. **AI analysis** (`analysis/ai.py`, on demand). `AiWorker` runs batches of `ai.batch_size` ads
+   per `messages.create` call with `output_config.format` (JSON schema) and `effort: low`. Each
+   batch is validated with Pydantic and stored in `adanalysis`, keyed by Library ID, so an ad is
+   never paid for twice. A failing batch is counted and skipped; the run continues.
+
 ## Data model
 
 - `competitor`: one tracked brand (name, optional Page ID, local logo).
@@ -71,6 +86,8 @@ the JSON degrades the data but doesn't break scans.
   zlib-compressed `raw_json`/`raw_html` so ads can be re-parsed (`cli.py reparse`) after parser fixes.
 - `adsnapshot`: one row per ad per scan. This is the basis for change detection (Phase 4).
 - `report`: generated reports (HTML + PDF paths, options).
+- `landingpage`: one screenshot per normalized destination URL.
+- `adanalysis` / `airun`: cached AI results per Library ID, and per-run token/cost accounting.
 
 Schema changes go through Alembic (`backend/app/db/migrations`). Migrations run automatically at startup.
 

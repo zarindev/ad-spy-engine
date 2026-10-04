@@ -111,6 +111,14 @@ class Ad(SQLModel, table=True):
     last_seen_at: datetime = Field(default_factory=utcnow)
     last_scan_id: int | None = Field(default=None, foreign_key="scan.id")
 
+    # Variation grouping (analysis/grouping.py)
+    phash: str | None = None  # perceptual hash of the thumbnail (hex)
+    copy_hash: str | None = None  # hash of normalized copy
+    group_key: str | None = Field(default=None, index=True)
+    group_size: int = 1
+    group_creatives: int = 1
+    group_copies: int = 1
+
 
 class AdSnapshot(SQLModel, table=True):
     """One row per ad per scan — the basis of change detection."""
@@ -139,3 +147,55 @@ class Report(SQLModel, table=True):
     status: str = "ready"  # ready | failed
     error: str | None = None
     created_at: datetime = Field(default_factory=utcnow, index=True)
+
+
+class LandingPage(SQLModel, table=True):
+    """Screenshot of an ad's destination, shared by every ad pointing at the same normalized URL."""
+
+    id: int | None = Field(default=None, primary_key=True)
+    url_key: str = Field(index=True, unique=True)
+    url: str
+    final_url: str | None = None
+    title: str | None = None
+    screenshot_path: str | None = None
+    status: str = "ok"  # ok | failed | skipped
+    error: str | None = None
+    captured_at: datetime = Field(default_factory=utcnow)
+
+
+class AdAnalysis(SQLModel, table=True):
+    """AI copy analysis, cached by Library ID so an ad is never paid for twice."""
+
+    id: int | None = Field(default=None, primary_key=True)
+    library_id: str = Field(index=True, unique=True)
+    ad_id: int | None = Field(default=None, foreign_key="ad.id", index=True)
+    model: str
+    hook_type: str
+    hook_text: str | None = None
+    angle: str | None = None
+    emotion: str | None = None
+    offer: str | None = None
+    cta: str | None = None
+    target_audience_guess: str | None = None
+    one_line_summary: str | None = None
+    what_to_steal: str | None = None
+    run_id: int | None = Field(default=None, foreign_key="airun.id")
+    created_at: datetime = Field(default_factory=utcnow)
+
+
+class AiRun(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    scope: dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSON))
+    model: str
+    status: str = "queued"  # queued | running | completed | failed
+    total: int = 0
+    done: int = 0
+    failed: int = 0
+    cached: int = 0
+    input_tokens: int = 0
+    output_tokens: int = 0
+    cost_usd: float = 0.0
+    estimate_usd: float = 0.0
+    error: str | None = None
+    created_at: datetime = Field(default_factory=utcnow)
+    finished_at: datetime | None = None

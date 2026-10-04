@@ -53,6 +53,10 @@ def ad_out(ad: Ad, detail: bool = False) -> dict[str, Any]:
         "library_url": library_url(ad.library_id),
         "first_seen_at": ad.first_seen_at.isoformat() if ad.first_seen_at else None,
         "last_seen_at": ad.last_seen_at.isoformat() if ad.last_seen_at else None,
+        "group_key": ad.group_key,
+        "group_size": ad.group_size,
+        "group_creatives": ad.group_creatives,
+        "group_copies": ad.group_copies,
     }
     if detail:
         data.update(
@@ -126,4 +130,18 @@ def report_out(r: Report) -> dict[str, Any]:
         "status": r.status,
         "error": r.error,
         "created_at": r.created_at.isoformat() if r.created_at else None,
+    }
+
+
+def landing_out(page) -> dict[str, Any] | None:  # noqa: ANN001
+    if page is None:
+        return None
+    return {
+        "url": page.url,
+        "final_url": page.final_url,
+        "title": page.title,
+        "screenshot_url": file_url(page.screenshot_path),
+        "status": page.status,
+        "error": page.error,
+        "captured_at": page.captured_at.isoformat() if page.captured_at else None,
     }

@@ -27,6 +27,8 @@ const STAGES: Record<string, string> = {
   starting_browser: "Launching Chrome",
   loading: "Opening the Ad Library",
   scrolling: "Collecting ads",
+  grouping: "Grouping variations",
+  capturing_landing_pages: "Capturing landing pages",
 };
 
 function useElapsed(scan: Scan | undefined, live: boolean) {
